@@ -19,9 +19,9 @@ func main() {
 		{Id: "2"},
 		{Id: "3"},
 	}))
-	mux.HandleFunc("GET /items", api.getAllItems)
-	mux.HandleFunc("GET /items/{id}", api.getItemById)
-	mux.HandleFunc("DELETE /items/{id}", api.deleteItemById)
+	mux.HandleFunc("GET /items", api.GetAllItems)
+	mux.HandleFunc("GET /items/{id}", api.GetItemById)
+	mux.HandleFunc("DELETE /items/{id}", api.DeleteItemById)
 
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal(err)
@@ -29,10 +29,10 @@ func main() {
 }
 
 type ItemRepository interface {
-	getAllItems() []Item
-	getItemById(id string) (Item, bool)
-	insertItem(item Item) error
-	deleteItemById(id string) (Item, error)
+	GetAllItems() []Item
+	GetItemById(id string) (Item, bool)
+	InsertItem(item Item) error
+	DeleteItemById(id string) (Item, error)
 }
 
 type MemoryItemRepository struct {
@@ -44,13 +44,13 @@ func NewMemoryItemRespository(items []Item) *MemoryItemRepository {
 	return &MemoryItemRepository{items: items}
 }
 
-func (ir *MemoryItemRepository) getAllItems() []Item {
+func (ir *MemoryItemRepository) GetAllItems() []Item {
 	defer ir.mu.Unlock()
 	ir.mu.Lock()
 	return ir.items
 }
 
-func (ir *MemoryItemRepository) getItemById(id string) (Item, bool) {
+func (ir *MemoryItemRepository) GetItemById(id string) (Item, bool) {
 	defer ir.mu.Unlock()
 	ir.mu.Lock()
 	for i := range ir.items {
@@ -62,14 +62,14 @@ func (ir *MemoryItemRepository) getItemById(id string) (Item, bool) {
 	return Item{}, false
 }
 
-func (ir *MemoryItemRepository) insertItem(item Item) error {
+func (ir *MemoryItemRepository) InsertItem(item Item) error {
 	defer ir.mu.Unlock()
 	ir.mu.Lock()
 	ir.items = append(ir.items, item)
 	return nil
 }
 
-func (ir *MemoryItemRepository) deleteItemById(id string) (Item, error) {
+func (ir *MemoryItemRepository) DeleteItemById(id string) (Item, error) {
 	defer ir.mu.Unlock()
 	ir.mu.Lock()
 	index := slices.IndexFunc(ir.items, func(currentItem Item) bool {
@@ -95,14 +95,14 @@ func NewItemAPIService(repository ItemRepository) *ItemAPIService {
 	return &ItemAPIService{repository: repository}
 }
 
-func (api *ItemAPIService) getAllItems(w http.ResponseWriter, r *http.Request) {
-	items := api.repository.getAllItems()
+func (api *ItemAPIService) GetAllItems(w http.ResponseWriter, r *http.Request) {
+	items := api.repository.GetAllItems()
 	writeJSON(w, items)
 }
 
-func (api *ItemAPIService) getItemById(w http.ResponseWriter, r *http.Request) {
+func (api *ItemAPIService) GetItemById(w http.ResponseWriter, r *http.Request) {
 	requestedId := r.PathValue("id")
-	item, ok := api.repository.getItemById(requestedId)
+	item, ok := api.repository.GetItemById(requestedId)
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -110,13 +110,13 @@ func (api *ItemAPIService) getItemById(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, item)
 }
 
-func (api *ItemAPIService) deleteItemById(w http.ResponseWriter, r *http.Request) {
+func (api *ItemAPIService) DeleteItemById(w http.ResponseWriter, r *http.Request) {
 	idToDelete := r.PathValue("id")
 	if len(idToDelete) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	deltedItem, err := api.repository.deleteItemById(idToDelete)
+	deltedItem, err := api.repository.DeleteItemById(idToDelete)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
