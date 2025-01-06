@@ -1,0 +1,58 @@
+package views
+
+templ Index() {
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="color-scheme" content="light dark">
+            <link rel="stylesheet" href="/assets/css/pico.indigo.min.css"/>
+            <title>cpaw</title>
+        </head>
+        <body>
+            <main class="container">
+            <nav>
+              <ul>
+                <li><h3>cpaw</h3></li>
+              </ul>
+              <ul>
+                <li><a href="#" class="contrast">Logout</a></li>
+                <li><a href="#" class="contrast">About</a></li>
+              </ul>
+            </nav>
+                <hgroup>
+                    <h1>Welcome</h1>
+                </hgroup>
+
+                <form>
+                    <fieldset>
+                        <label>
+                            First name
+                            <input name="first_name" placeholder="First name" autocomplete="given-name" />
+                        </label>
+                        <label>
+                            Email
+                            <input type="email" name="email" placeholder="Email" autocomplete="email" />
+                        </label>
+                    </fieldset>
+                    <input
+                        type="submit"
+                        value="login"
+                    />
+                </form>
+
+                <article>
+                  <header>Header</header>
+                  Body
+                  <footer>Footer</footer>
+                </article>
+                <article>
+                  <header>Header</header>
+                  Body
+                  <footer>Footer</footer>
+                </article>
+            </main>
+        </body>
+    </html>
+}
