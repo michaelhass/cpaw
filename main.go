@@ -15,8 +15,23 @@ func main() {
 
 	mainMux.Handle("/assets/css/", http.StripPrefix("/assets/css/", http.FileServer(http.Dir("views/assets/css"))))
 
+	mainMux.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
+		component := views.WithDefaultPage(views.Login())
+		component.Render(r.Context(), w)
+	})
+
+	mainMux.HandleFunc("GET /signup", func(w http.ResponseWriter, r *http.Request) {
+		component := views.WithDefaultPage(views.SignUp())
+		component.Render(r.Context(), w)
+	})
+
 	mainMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		component := views.Index()
+		loggedIn := false
+		if !loggedIn {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+		component := views.WithDefaultPage(views.Index())
 		component.Render(r.Context(), w)
 	})
 
