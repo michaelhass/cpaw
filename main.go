@@ -4,16 +4,27 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/michaelhass/cpaw/db"
 	"github.com/michaelhass/cpaw/handlers"
 	"github.com/michaelhass/cpaw/mux"
 	"github.com/michaelhass/cpaw/views"
 )
 
 func main() {
+	connection := db.SqliteConnection{}
+
 	mainMux := mux.NewDefaultMux()
 	mainMux.Use(handlers.Logger)
 
-	mainMux.Handle("/assets/css/", http.StripPrefix("/assets/css/", http.FileServer(http.Dir("views/assets/css"))))
+	mainMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		loggedIn := false
+		if !loggedIn {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+		component := views.WithDefaultPage(views.Index())
+		component.Render(r.Context(), w)
+	})
 
 	mainMux.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
 		component := views.WithDefaultPage(views.Login())
@@ -25,15 +36,7 @@ func main() {
 		component.Render(r.Context(), w)
 	})
 
-	mainMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		loggedIn := false
-		if !loggedIn {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		component := views.WithDefaultPage(views.Index())
-		component.Render(r.Context(), w)
-	})
+	mainMux.Handle("/assets/css/", http.StripPrefix("/assets/css/", http.FileServer(http.Dir("views/assets/css"))))
 
 	// mainMux.Group("/api/v1", func(api *mux.Mux) {
 	// 	api.HandleFunc("GET /user", func(w http.ResponseWriter, r *http.Request) {
