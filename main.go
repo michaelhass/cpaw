@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/michaelhass/cpaw/db"
-	"github.com/michaelhass/cpaw/handlers"
+	"github.com/michaelhass/cpaw/middleware"
 	"github.com/michaelhass/cpaw/mux"
 	"github.com/michaelhass/cpaw/views"
 )
@@ -31,7 +31,7 @@ func main() {
 	// userRepository := repository.NewUserRepository(db)
 
 	mainMux := mux.NewDefaultMux()
-	mainMux.Use(handlers.Logger)
+	mainMux.Use(middleware.Logger)
 
 	mainMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		loggedIn := false

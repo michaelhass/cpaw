@@ -1,8 +1,8 @@
-package handlers
+package middleware
 
 import "net/http"
 
-func AuthHandler(next http.Handler) http.Handler {
+func Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c, err := r.Cookie("cpaw_session")
 		if err == http.ErrNoCookie {
