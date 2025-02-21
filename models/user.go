@@ -5,4 +5,5 @@ type User struct {
 	CreatedAt    int64
 	UserName     string
 	PasswordHash string
+	Role         Role
 }

@@ -18,6 +18,16 @@ func main() {
 	}
 	defer db.Close()
 
+	if err := db.SetUp(); err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	if err := db.Seed(); err != nil {
+		log.Fatal(err)
+		return
+	}
+
 	// userRepository := repository.NewUserRepository(db)
 
 	mainMux := mux.NewDefaultMux()

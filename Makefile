@@ -1,8 +1,8 @@
 APP_NAME=cpaw
-BINARY_PATH=bin/${APP_NAME}
-MIGRATION_PATH=db/migration
+BINARY_PATH=./tmp/bin/${APP_NAME}
+MIGRATION_PATH=./db/migrations
 
-all: build run test
+all: build run test migrate_create migrate_up migrate_down
 .PHONY: all
 
 build:

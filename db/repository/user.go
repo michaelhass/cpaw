@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/michaelhass/cpaw/hash"
 	"github.com/michaelhass/cpaw/models"
 )
 
@@ -19,15 +20,27 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	}
 }
 
+const userCountQuery = `
+SELECT COUNT(id) FROM users;
+`
+
+func (ur *UserRepository) GetUserCount(ctx context.Context) (int, error) {
+	var count int
+	row := ur.db.QueryRowContext(ctx, userCountQuery)
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createUserQuery = `
-INSERT INTO users (id, created_at, user_name, password_hash)
-VALUES ($1, $2, $3, $4)
-RETURNING (id, created_at, user_name, password_hash)
+INSERT INTO users (id, created_at, user_name, password_hash, role)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING (id, created_at, user_name, password_hash, role);
 `
 
 type CreateUserParams struct {
-	UserName     string
-	PasswordHash string
+	UserName string
+	Password string
+	role     models.Role
 }
 
 func (ur *UserRepository) CreateUser(ctx context.Context, arg CreateUserParams) (models.User, error) {
@@ -40,14 +53,32 @@ func (ur *UserRepository) CreateUser(ctx context.Context, arg CreateUserParams) 
 
 	id := uuid.String()
 	createdAt := time.Now().Unix()
+	var role models.Role
+	if len(arg.role) == 0 {
+		role = arg.role
+	} else {
+		role = models.UserRole
+	}
 
-	row := ur.db.QueryRowContext(ctx, createUserQuery, id, createdAt, arg.UserName, arg.PasswordHash)
-	err = row.Scan(&user.Id, &user.CreatedAt, &user.UserName, &user.PasswordHash)
+	passwordHash, err := hash.NewFromPassword(arg.Password)
+	if err != nil {
+		return user, err
+	}
+
+	row := ur.db.QueryRowContext(
+		ctx,
+		createUserQuery,
+		id, createdAt,
+		arg.UserName,
+		passwordHash,
+		role,
+	)
+	err = row.Scan(&user.Id, &user.CreatedAt, &user.UserName, &user.PasswordHash, &user.Role)
 	return user, err
 }
 
 const getUserByIdQuery = `
-SELECT id, created_at, user_name, password_hash FROM users
+SELECT id, created_at, user_name, password_hash, role FROM users
 WHERE id = $1
 LIMIT 1;
 `
@@ -55,17 +86,17 @@ LIMIT 1;
 func (ur *UserRepository) GetUserById(ctx context.Context, id string) (models.User, error) {
 	row := ur.db.QueryRowContext(ctx, getUserByIdQuery, id)
 	var user models.User
-	err := row.Scan(&user.Id, &user.CreatedAt, &user.UserName, &user.PasswordHash)
+	err := row.Scan(&user.Id, &user.CreatedAt, &user.UserName, &user.PasswordHash, &user.Role)
 	return user, err
 }
 
-const getAllUsersQuery = `
-SELECT id, created_at, user_name, password_hash FROM users
-ORDER BY user_name
+const listUsersQuery = `
+SELECT id, created_at, user_name, password_hash, role FROM users
+ORDER BY user_name;
 `
 
-func (ur *UserRepository) GetAllUsers(ctx context.Context) ([]models.User, error) {
-	rows, err := ur.db.QueryContext(ctx, getAllUsersQuery)
+func (ur *UserRepository) ListUsers(ctx context.Context) ([]models.User, error) {
+	rows, err := ur.db.QueryContext(ctx, listUsersQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +106,7 @@ func (ur *UserRepository) GetAllUsers(ctx context.Context) ([]models.User, error
 	var users []models.User
 	for rows.Next() {
 		var user models.User
-		if err := rows.Scan(&user.Id, &user.CreatedAt, &user.UserName, &user.PasswordHash); err != nil {
+		if err := rows.Scan(&user.Id, &user.CreatedAt, &user.UserName, &user.PasswordHash, &user.Role); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -88,7 +119,7 @@ func (ur *UserRepository) GetAllUsers(ctx context.Context) ([]models.User, error
 
 const deleteUserByIdQuery = `
 DELETE FROM users
-WHERE id = $1
+WHERE id = $1;
 `
 
 func (ur *UserRepository) DeleteUserById(ctx context.Context, id string) error {
