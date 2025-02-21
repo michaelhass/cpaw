@@ -3,14 +3,9 @@ package db
 import (
 	"database/sql"
 
-	_ "github.com/mattn/go-slite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-type SqliteConnection struct {
-	*sql.DB
-}
-
-func ConnectSqlite(databasePath string) (*SqliteConnection, error) {
-	db, err := sql.Open("sqlite3", databasePath)
-	return &SqliteConnection{DB: db}, err
+func NewSqlite(databasePath string) (*sql.DB, error) {
+	return sql.Open("sqlite3", databasePath)
 }

@@ -11,7 +11,14 @@ import (
 )
 
 func main() {
-	connection := db.SqliteConnection{}
+	db, err := db.NewSqlite("cpaw.db")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	defer db.Close()
+
+	// userRepository := repository.NewUserRepository(db)
 
 	mainMux := mux.NewDefaultMux()
 	mainMux.Use(handlers.Logger)
