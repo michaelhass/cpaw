@@ -16,3 +16,13 @@ CREATE TABLE IF NOT EXISTS items (
 );
 
 CREATE TABLE IF NOT EXISTS roles (name TEXT NOT NULL PRIMARY KEY);
+
+INSERT
+OR IGNORE INTO roles (name)
+VALUES
+    ("admin");
+
+INSERT
+OR IGNORE INTO roles (name)
+VALUES
+    ("user");

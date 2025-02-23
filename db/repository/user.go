@@ -1,4 +1,4 @@
-package repository
+// package repository
 
 import (
 	"context"
@@ -117,12 +117,29 @@ func (ur *UserRepository) ListUsers(ctx context.Context) ([]models.User, error) 
 	return users, nil
 }
 
-const deleteUserByIdQuery = `
-DELETE FROM users
-WHERE id = $1;
-`
+const deleteUserByIdQuery = "DELETE FROM users WHERE id = $1;"
 
 func (ur *UserRepository) DeleteUserById(ctx context.Context, id string) error {
 	_, err := ur.db.ExecContext(ctx, deleteUserByIdQuery, id)
+	return err
+}
+
+type UpdateUserPasswordParams struct {
+	ID       string
+	Password string
+}
+
+const updatePasswordQuery = `
+UPDATE users
+SET password_hash = $1
+WHERE id = $2
+`
+
+func (ur *UserRepository) UpdatePassword(ctx context.Context, args UpdateUserPasswordParams) error {
+	passwordHash, err := hash.NewFromPassword(args.Password)
+	if err != nil {
+		return err
+	}
+	_, err = ur.db.Exec(updatePasswordQuery, passwordHash, args.ID)
 	return err
 }
