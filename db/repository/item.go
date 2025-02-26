@@ -28,9 +28,9 @@ VALUES ($1, $2, $3, $4)
 RETURNING (id, created_at, content, user_id);
 `
 
-func (ir *ItemRepository) CreateItem(ctx context.Context, arg CreateItemParams) (model.Item, err) {
+func (ir *ItemRepository) CreateItem(ctx context.Context, arg CreateItemParams) (models.Item, error) {
 	var item models.Item
-
+	sql.Stmt = sql.Stmt{}
 	uuid, err := uuid.NewRandom()
 	if err != nil {
 		return item, err

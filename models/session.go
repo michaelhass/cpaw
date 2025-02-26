@@ -1,9 +1,7 @@
 package models
 
-import "time"
-
 type Session struct {
-	Token     string
-	ExpiresAt time.Time
-	UserId    string
+	ID        string
+	ExpiresAt int64
+	UserID    string
 }
