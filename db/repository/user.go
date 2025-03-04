@@ -1,4 +1,4 @@
-// package repository
+package repository
 
 import (
 	"context"
@@ -40,7 +40,7 @@ RETURNING (id, created_at, user_name, password_hash, role);
 type CreateUserParams struct {
 	UserName string
 	Password string
-	role     models.Role
+	Role     models.Role
 }
 
 func (ur *UserRepository) CreateUser(ctx context.Context, arg CreateUserParams) (models.User, error) {
@@ -54,8 +54,8 @@ func (ur *UserRepository) CreateUser(ctx context.Context, arg CreateUserParams) 
 	id := uuid.String()
 	createdAt := time.Now().Unix()
 	var role models.Role
-	if len(arg.role) == 0 {
-		role = arg.role
+	if len(arg.Role) == 0 {
+		role = arg.Role
 	} else {
 		role = models.UserRole
 	}

@@ -19,7 +19,7 @@ func NewSessionRespository(db *sql.DB) *SessionRepository {
 
 type CreateSessionParams struct {
 	ExpiresAt time.Time
-	UserID    string
+	UserId    string
 }
 
 const createSessionQuery = `
@@ -43,10 +43,10 @@ func (sr *SessionRepository) CreateSession(ctx context.Context, arg CreateSessio
 		createSessionQuery,
 		sessionId,
 		expiresAt,
-		arg.UserID,
+		arg.UserId,
 	)
 
-	err = row.Scan(&session.ID, &session.ExpiresAt, session.UserID)
+	err = row.Scan(&session.Id, &session.ExpiresAt, session.UserId)
 	return session, err
 }
 
@@ -55,20 +55,20 @@ SELECT (id, expires_at, user_id) FROM sessions
 WHERE user_id = $1;
 `
 
-func (sr *SessionRepository) GetSessionForUser(ctx context.Context, userID string) (models.Session, error) {
+func (sr *SessionRepository) GetSessionForUser(ctx context.Context, userId string) (models.Session, error) {
 	var session models.Session
 	row := sr.db.QueryRowContext(
 		ctx,
 		getSessionForUserQuery,
-		userID,
+		userId,
 	)
-	err := row.Scan(&session.ID, &session.ExpiresAt, session.UserID)
+	err := row.Scan(&session.Id, &session.ExpiresAt, session.UserId)
 	return session, err
 }
 
 const deleteSessionForUserQuery = "DELETE FROM sessions WHERE id = $1;"
 
-func (sr *SessionRepository) DeleteSessionForUser(ctx context.Context, userID string) error {
-	_, err := sr.db.ExecContext(ctx, deleteSessionForUserQuery, userID)
+func (sr *SessionRepository) DeleteSessionForUser(ctx context.Context, userId string) error {
+	_, err := sr.db.ExecContext(ctx, deleteSessionForUserQuery, userId)
 	return err
 }

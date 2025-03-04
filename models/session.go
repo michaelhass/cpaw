@@ -1,7 +1,7 @@
 package models
 
 type Session struct {
-	ID        string
-	ExpiresAt int64
-	UserID    string
+	Id        string `json:"id"`
+	ExpiresAt int64  `json:"expiresAt"`
+	UserId    string `json:"userId"`
 }

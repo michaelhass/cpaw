@@ -19,7 +19,7 @@ func NewItemRepository(db *sql.DB) *ItemRepository {
 
 type CreateItemParams struct {
 	Content string
-	UserID  string
+	UserId  string
 }
 
 const createItemQuery = `
@@ -30,7 +30,7 @@ RETURNING (id, created_at, content, user_id);
 
 func (ir *ItemRepository) CreateItem(ctx context.Context, arg CreateItemParams) (models.Item, error) {
 	var item models.Item
-	sql.Stmt = sql.Stmt{}
+
 	uuid, err := uuid.NewRandom()
 	if err != nil {
 		return item, err
@@ -45,10 +45,10 @@ func (ir *ItemRepository) CreateItem(ctx context.Context, arg CreateItemParams) 
 		id,
 		createdAt,
 		arg.Content,
-		arg.UserID,
+		arg.UserId,
 	)
 
-	err = row.Scan(&item.Id, &item.CreatedAt, &item.Content, &item.UserID)
+	err = row.Scan(&item.Id, &item.CreatedAt, &item.Content, &item.UserId)
 	return item, err
 }
 
@@ -58,8 +58,8 @@ WHERE user_id = $1
 ORDER BY created_at DESC
 `
 
-func (ir *ItemRepository) ListItemsForUser(ctx context.Context, userID string) ([]models.Item, error) {
-	rows, err := ir.db.QueryContext(ctx, listItemsForUserQuery, userID)
+func (ir *ItemRepository) ListItemsForUser(ctx context.Context, userId string) ([]models.Item, error) {
+	rows, err := ir.db.QueryContext(ctx, listItemsForUserQuery, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (ir *ItemRepository) ListItemsForUser(ctx context.Context, userID string) (
 	var items []models.Item
 	for rows.Next() {
 		var item models.Item
-		if err := rows.Scan(&item.Id, &item.CreatedAt, &item.Content, &item.UserID); err != nil {
+		if err := rows.Scan(&item.Id, &item.CreatedAt, &item.Content, &item.UserId); err != nil {
 			return nil, err
 		}
 		items = append(items, item)
