@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/michaelhass/cpaw/models"
 )
 
@@ -18,57 +18,53 @@ func NewSessionRespository(db *sql.DB) *SessionRepository {
 }
 
 type CreateSessionParams struct {
+	Token     string
 	ExpiresAt time.Time
 	UserId    string
 }
 
 const createSessionQuery = `
-INSERT INTO sessions (id, expires_at, user_id)
+INSERT INTO sessions (token, expires_at, user_id)
 VALUES ($1, $2, $3)
-RETURNING (id, expires_at, user_id);
+RETURNING (token, expires_at, user_id);
 `
 
 func (sr *SessionRepository) CreateSession(ctx context.Context, arg CreateSessionParams) (models.Session, error) {
 	var session models.Session
-
-	uuid, err := uuid.NewRandom()
-	if err != nil {
-		return session, err
-	}
-	sessionId := uuid.String()
 	expiresAt := arg.ExpiresAt.Unix()
-
 	row := sr.db.QueryRowContext(
 		ctx,
 		createSessionQuery,
-		sessionId,
+		arg.Token,
 		expiresAt,
 		arg.UserId,
 	)
-
-	err = row.Scan(&session.Id, &session.ExpiresAt, session.UserId)
+	err := row.Scan(&session.Token, &session.ExpiresAt, session.UserId)
 	return session, err
 }
 
-const getSessionForUserQuery = `
-SELECT (id, expires_at, user_id) FROM sessions
-WHERE user_id = $1;
+const getSessionByTokenQuery = `
+SELECT (token, expires_at, user_id) FROM sessions
+WHERE id = $1;
 `
 
-func (sr *SessionRepository) GetSessionForUser(ctx context.Context, userId string) (models.Session, error) {
+func (sr *SessionRepository) GetSessionByToken(ctx context.Context, sessionToken string) (models.Session, error) {
 	var session models.Session
 	row := sr.db.QueryRowContext(
 		ctx,
-		getSessionForUserQuery,
-		userId,
+		getSessionByTokenQuery,
+		sessionToken,
 	)
-	err := row.Scan(&session.Id, &session.ExpiresAt, session.UserId)
+	err := row.Scan(&session.Token, &session.ExpiresAt, session.UserId)
+	if errors.Is(err, sql.ErrNoRows) {
+		return session, ErrNotFound
+	}
 	return session, err
 }
 
 const deleteSessionForUserQuery = "DELETE FROM sessions WHERE id = $1;"
 
-func (sr *SessionRepository) DeleteSessionForUser(ctx context.Context, userId string) error {
-	_, err := sr.db.ExecContext(ctx, deleteSessionForUserQuery, userId)
+func (sr *SessionRepository) DeleteSessionById(ctx context.Context, sessionId string) error {
+	_, err := sr.db.ExecContext(ctx, deleteSessionForUserQuery, sessionId)
 	return err
 }

@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id TEXT NOT NULL PRIMARY KEY,
     created_at INTEGER NOT NULL,
-    user_name TEXT NOT NULL,
+    user_name TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     role TEXT,
     FOREIGN KEY (role) REFERENCES roles (name) ON DELETE SET NULL
@@ -28,7 +28,7 @@ VALUES
     ("user");
 
 CREATE TABLE IF NOT EXISTS sessions (
-    id TEXT NOT NULL PRIMARY KEY,
+    token TEXT NOT NULL PRIMARY KEY,
     expires_at INTEGER NOT NULL,
     user_id TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
