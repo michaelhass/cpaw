@@ -66,6 +66,10 @@ func (as *AuthService) SignIn(ctx context.Context, userName string, password str
 	return result, nil
 }
 
+func (as *AuthService) SignOut(ctx context.Context, sessionId string) error {
+	return as.sessions.DeleteSessionById(ctx, sessionId)
+}
+
 func generateSessionToken(length int) (string, error) {
 	randomValues := make([]byte, length)
 	if _, err := rand.Read(randomValues); err != nil {
