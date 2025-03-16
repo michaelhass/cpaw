@@ -21,7 +21,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 }
 
 const userCountQuery = `
-SELECT COUNT(id) FROM users;
+SELECT COUNT(1) FROM users;
 `
 
 func (ur *UserRepository) GetUserCount(ctx context.Context) (int, error) {
@@ -34,7 +34,7 @@ func (ur *UserRepository) GetUserCount(ctx context.Context) (int, error) {
 const createUserQuery = `
 INSERT INTO users (id, created_at, user_name, password_hash, role)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING (id, created_at, user_name, password_hash, role);
+RETURNING id, created_at, user_name, password_hash, role;
 `
 
 type CreateUserParams struct {
@@ -54,7 +54,7 @@ func (ur *UserRepository) CreateUser(ctx context.Context, arg CreateUserParams) 
 	id := uuid.String()
 	createdAt := time.Now().Unix()
 	var role models.Role
-	if len(arg.Role) == 0 {
+	if len(arg.Role) > 0 {
 		role = arg.Role
 	} else {
 		role = models.UserRole

@@ -25,7 +25,7 @@ type CreateItemParams struct {
 const createItemQuery = `
 INSERT INTO items (id, created_at, content, user_id)
 VALUES ($1, $2, $3, $4)
-RETURNING (id, created_at, content, user_id);
+RETURNING id, created_at, content, user_id;
 `
 
 func (ir *ItemRepository) CreateItem(ctx context.Context, arg CreateItemParams) (models.Item, error) {

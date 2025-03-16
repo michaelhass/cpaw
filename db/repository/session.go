@@ -26,7 +26,7 @@ type CreateSessionParams struct {
 const createSessionQuery = `
 INSERT INTO sessions (token, expires_at, user_id)
 VALUES ($1, $2, $3)
-RETURNING (token, expires_at, user_id);
+RETURNING token, expires_at, user_id;
 `
 
 func (sr *SessionRepository) CreateSession(ctx context.Context, arg CreateSessionParams) (models.Session, error) {

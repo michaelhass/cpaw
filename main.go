@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
 	"github.com/michaelhass/cpaw/db"
+	"github.com/michaelhass/cpaw/db/repository"
 	"github.com/michaelhass/cpaw/middleware"
 	"github.com/michaelhass/cpaw/mux"
+	"github.com/michaelhass/cpaw/service"
 	"github.com/michaelhass/cpaw/views"
 )
 
@@ -17,18 +20,33 @@ func main() {
 		return
 	}
 	defer db.Close()
-
 	if err := db.SetUp(); err != nil {
 		log.Fatal(err)
 		return
 	}
-
 	if err := db.Seed(); err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	// userRepository := repository.NewUserRepository(db)
+	userRepository := repository.NewUserRepository(db.DB)
+	sessionRespository := repository.NewSessionRespository(db.DB)
+	authService := service.NewAuthService(sessionRespository, userRepository)
+
+	initialCredentials, err := authService.SetUp(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(initialCredentials.Id) > 0 {
+		const logMsg string = "--- Created initial user. ---\nid: %s, name: %s, pw: %s\n"
+		log.Printf(
+			logMsg,
+			initialCredentials.Id,
+			initialCredentials.UserName,
+			initialCredentials.Password,
+		)
+	}
+	log.Println("Auth service is ready.")
 
 	mainMux := mux.NewDefaultMux()
 	mainMux.Use(middleware.Logger)

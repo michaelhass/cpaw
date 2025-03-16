@@ -14,6 +14,7 @@ func NewSqlite(databasePath string) (*Sqlite, error) {
 	db, err := sql.Open("sqlite3", databasePath)
 	return &Sqlite{DB: db}, err
 }
+
 func (s *Sqlite) Close() error {
 	return s.DB.Close()
 }

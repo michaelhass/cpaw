@@ -1,4 +1,4 @@
-package auth
+package service
 
 import (
 	"context"
@@ -21,10 +21,54 @@ type AuthService struct {
 	users    *repository.UserRepository
 }
 
+func NewAuthService(
+	sessions *repository.SessionRepository,
+	users *repository.UserRepository,
+) *AuthService {
+	return &AuthService{sessions: sessions, users: users}
+}
+
 type InvalidCredentialsError struct{}
 
 func (e *InvalidCredentialsError) Error() string {
 	return "Invalid credentials"
+}
+
+type AuthSetupCredentials struct {
+	Id       string
+	UserName string
+	Password string
+}
+
+func (as *AuthService) SetUp(ctx context.Context) (AuthSetupCredentials, error) {
+	var credentials AuthSetupCredentials
+
+	count, err := as.users.GetUserCount(ctx)
+	if err != nil {
+		return credentials, err
+	}
+	if count > 0 {
+		return credentials, nil
+	}
+
+	tmpPassword := "root"
+	createInitialUserParams := repository.CreateUserParams{
+		UserName: "root",
+		Password: tmpPassword,
+		Role:     models.AdminRole,
+	}
+
+	user, err := as.users.CreateUser(ctx, createInitialUserParams)
+
+	if err != nil {
+		return credentials, err
+	}
+
+	credentials.Id = user.Id
+	credentials.UserName = user.UserName
+	credentials.Password = tmpPassword
+
+	return credentials, err
 }
 
 type AuthSignInResult struct {
