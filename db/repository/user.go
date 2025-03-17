@@ -92,15 +92,16 @@ func (ur *UserRepository) GetUserById(ctx context.Context, id string) (models.Us
 
 const getUserByNameQuery = `
 SELECT id, created_at, user_name, password_hash, role FROM users
-WHERE id = $1
+WHERE user_name = $1
 LIMIT 1;
 `
 
 func (ur *UserRepository) GetUserByName(ctx context.Context, name string) (models.User, error) {
-	row := ur.db.QueryRowContext(ctx, getUserByIdQuery, name)
-	var user models.User
-	err := row.Scan(&user.Id, &user.CreatedAt, &user.UserName, &user.PasswordHash, &user.Role)
-	return user, err
+	row := ur.db.QueryRowContext(ctx, getUserByNameQuery, name)
+	var user *models.User = &models.User{}
+	var password string
+	err := row.Scan(user.Id, user.CreatedAt, user.UserName, password, user.Role)
+	return *user, err
 }
 
 const listUsersQuery = `
