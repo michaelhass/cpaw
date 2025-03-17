@@ -31,4 +31,5 @@ migrate_down:
 
 clean:
 	go clean
-	rm -rf bin
+	rm -rf tmp
+	rm ${CPAW_DB}

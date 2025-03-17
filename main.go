@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 
+	"github.com/golang-migrate/migrate/v4"
 	"github.com/michaelhass/cpaw/db"
 	"github.com/michaelhass/cpaw/db/repository"
+	"github.com/michaelhass/cpaw/handler"
 	"github.com/michaelhass/cpaw/middleware"
 	"github.com/michaelhass/cpaw/mux"
 	"github.com/michaelhass/cpaw/service"
@@ -14,12 +17,19 @@ import (
 )
 
 func main() {
-	db, err := db.NewSqlite("cpaw.db")
+	db, err := db.NewSqlite(
+		db.WithDbName("cpaw"),
+		db.WithDbPath("cpaw.db"),
+	)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 	defer db.Close()
+	if err := db.MigrateUp(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		log.Fatal(err)
+		return
+	}
 	if err := db.SetUp(); err != nil {
 		log.Fatal(err)
 		return
@@ -51,6 +61,8 @@ func main() {
 	mainMux := mux.NewDefaultMux()
 	mainMux.Use(middleware.Logger)
 
+	mainMux.Handle("/assets/css/", http.StripPrefix("/assets/css/", http.FileServer(http.Dir("views/assets/css"))))
+
 	mainMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		loggedIn := false
 		if !loggedIn {
@@ -71,25 +83,15 @@ func main() {
 		component.Render(r.Context(), w)
 	})
 
-	mainMux.Handle("/assets/css/", http.StripPrefix("/assets/css/", http.FileServer(http.Dir("views/assets/css"))))
+	mainMux.Group("/api/v1", func(api *mux.Mux) {
+		apiHandler := handler.NewApiHandler(authService)
+		apiHandler.RegisterRoutes(api)
 
-	// mainMux.Group("/api/v1", func(api *mux.Mux) {
-	// 	api.HandleFunc("GET /user", func(w http.ResponseWriter, r *http.Request) {
-	// 		w.Write([]byte("user"))
-	// 	})
+	})
 
-	// 	api.Group("/items", func(items *mux.Mux) {
-	// 		items.Use(handler.AuthHandler)
-	// 		items.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-	// 			w.Write([]byte("items"))
-	// 		})
-	// 		items.HandleFunc("GET /{id}", func(w http.ResponseWriter, r *http.Request) {
-	// 			w.Write([]byte("items with id"))
-	// 		})
-	// 	})
-	// })
-
-	if err := http.ListenAndServe(":3000", mainMux); err != nil {
+	const port string = ":3000"
+	log.Println("Starting server at port", port)
+	if err := http.ListenAndServe(port, mainMux); err != nil {
 		log.Fatal(err)
 	}
 }
