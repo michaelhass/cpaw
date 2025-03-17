@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"log"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
@@ -89,7 +88,6 @@ const setUpStmt = `
 
 func (s *Sqlite) SetUp() error {
 	if err := s.MigrateUp(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		log.Fatal(err)
 		return err
 	}
 	if _, err := s.DB.Exec(setUpStmt); err != nil {

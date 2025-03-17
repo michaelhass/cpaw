@@ -51,12 +51,11 @@ func createTestUsers(ctx context.Context, repo *UserRepository, count int) ([]mo
 		params.Password = "test"
 		user, err := repo.CreateUser(ctx, params)
 		if err != nil {
-			return users, nil
+			return users, err
 		}
 		users[i] = user
 	}
 	return users, nil
-
 }
 
 func testCreateUser(repo *UserRepository) func(*testing.T) {

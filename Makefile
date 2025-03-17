@@ -3,7 +3,7 @@ BINARY_PATH=./tmp/bin/${APP_NAME}
 MIGRATION_PATH=./db/migrations
 CPAW_DB=cpaw.db
 
-all: build run test migrate_create migrate_up migrate_down
+all: build run build_run test migrate_create migrate_up migrate_down
 .PHONY: all
 
 build:
@@ -12,6 +12,8 @@ build:
 
 run:
 	./${BINARY_PATH}
+
+build_run: build run
 
 test:
 	 go test -v ./...

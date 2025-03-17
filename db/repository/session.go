@@ -39,13 +39,14 @@ func (sr *SessionRepository) CreateSession(ctx context.Context, arg CreateSessio
 		expiresAt,
 		arg.UserId,
 	)
-	err := row.Scan(&session.Token, &session.ExpiresAt, session.UserId)
+
+	err := row.Scan(&session.Token, &session.ExpiresAt, &session.UserId)
 	return session, err
 }
 
 const getSessionByTokenQuery = `
 SELECT (token, expires_at, user_id) FROM sessions
-WHERE id = $1;
+WHERE token = $1;
 `
 
 func (sr *SessionRepository) GetSessionByToken(ctx context.Context, sessionToken string) (models.Session, error) {
@@ -55,16 +56,16 @@ func (sr *SessionRepository) GetSessionByToken(ctx context.Context, sessionToken
 		getSessionByTokenQuery,
 		sessionToken,
 	)
-	err := row.Scan(&session.Token, &session.ExpiresAt, session.UserId)
+	err := row.Scan(&session.Token, &session.ExpiresAt, &session.UserId)
 	if errors.Is(err, sql.ErrNoRows) {
 		return session, ErrNotFound
 	}
 	return session, err
 }
 
-const deleteSessionForUserQuery = "DELETE FROM sessions WHERE id = $1;"
+const deleteSessionWithTokenQuery = "DELETE FROM sessions WHERE token = $1;"
 
-func (sr *SessionRepository) DeleteSessionById(ctx context.Context, sessionId string) error {
-	_, err := sr.db.ExecContext(ctx, deleteSessionForUserQuery, sessionId)
+func (sr *SessionRepository) DeleteSessionWithToken(ctx context.Context, sessionToken string) error {
+	_, err := sr.db.ExecContext(ctx, deleteSessionWithTokenQuery, sessionToken)
 	return err
 }

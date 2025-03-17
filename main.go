@@ -2,11 +2,9 @@ package main
 
 import (
 	"context"
-	"errors"
 	"log"
 	"net/http"
 
-	"github.com/golang-migrate/migrate/v4"
 	"github.com/michaelhass/cpaw/db"
 	"github.com/michaelhass/cpaw/db/repository"
 	"github.com/michaelhass/cpaw/handler"
@@ -26,10 +24,6 @@ func main() {
 		return
 	}
 	defer db.Close()
-	if err := db.MigrateUp(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		log.Fatal(err)
-		return
-	}
 	if err := db.SetUp(); err != nil {
 		log.Fatal(err)
 		return

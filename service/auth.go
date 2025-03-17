@@ -110,8 +110,8 @@ func (as *AuthService) SignIn(ctx context.Context, userName string, password str
 	return result, nil
 }
 
-func (as *AuthService) SignOut(ctx context.Context, sessionId string) error {
-	return as.sessions.DeleteSessionById(ctx, sessionId)
+func (as *AuthService) SignOut(ctx context.Context, sessionToken string) error {
+	return as.sessions.DeleteSessionWithToken(ctx, sessionToken)
 }
 
 func generateSessionToken(length int) (string, error) {

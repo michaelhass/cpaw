@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -46,7 +48,6 @@ func (api *ApiHandler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
 	authResult, err := api.AuthService.SignIn(r.Context(), signInRequest.UserName, signInRequest.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -65,5 +66,23 @@ func (api *ApiHandler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *ApiHandler) handleSignOut(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("cpaw_session")
+	if errors.Is(err, http.ErrNoCookie) {
+		log.Println("no cookie")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
+	token := cookie.Value
+	api.AuthService.SignOut(r.Context(), token)
+	http.SetCookie(w, &http.Cookie{
+		Name:    "cpaw_session",
+		Value:   "",
+		Expires: time.Now(),
+	})
+	w.WriteHeader(http.StatusOK)
 }
