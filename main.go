@@ -34,10 +34,6 @@ func main() {
 		log.Fatal(err)
 		return
 	}
-	if err := db.Seed(); err != nil {
-		log.Fatal(err)
-		return
-	}
 
 	userRepository := repository.NewUserRepository(db.DB)
 	sessionRespository := repository.NewSessionRespository(db.DB)

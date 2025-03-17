@@ -98,10 +98,9 @@ LIMIT 1;
 
 func (ur *UserRepository) GetUserByName(ctx context.Context, name string) (models.User, error) {
 	row := ur.db.QueryRowContext(ctx, getUserByNameQuery, name)
-	var user *models.User = &models.User{}
-	var password string
-	err := row.Scan(user.Id, user.CreatedAt, user.UserName, password, user.Role)
-	return *user, err
+	var user models.User
+	err := row.Scan(&user.Id, &user.CreatedAt, &user.UserName, &user.PasswordHash, &user.Role)
+	return user, err
 }
 
 const listUsersQuery = `
@@ -131,15 +130,8 @@ func (ur *UserRepository) ListUsers(ctx context.Context) ([]models.User, error) 
 	return users, nil
 }
 
-const deleteUserByIdQuery = "DELETE FROM users WHERE id = $1;"
-
-func (ur *UserRepository) DeleteUserById(ctx context.Context, id string) error {
-	_, err := ur.db.ExecContext(ctx, deleteUserByIdQuery, id)
-	return err
-}
-
 type UpdateUserPasswordParams struct {
-	ID       string
+	Id       string
 	Password string
 }
 
@@ -154,6 +146,20 @@ func (ur *UserRepository) UpdatePassword(ctx context.Context, args UpdateUserPas
 	if err != nil {
 		return err
 	}
-	_, err = ur.db.Exec(updatePasswordQuery, passwordHash, args.ID)
+	_, err = ur.db.ExecContext(ctx, updatePasswordQuery, passwordHash, args.Id)
+	return err
+}
+
+const deleteUserByIdQuery = "DELETE FROM users WHERE id = $1;"
+
+func (ur *UserRepository) DeleteUserById(ctx context.Context, id string) error {
+	_, err := ur.db.ExecContext(ctx, deleteUserByIdQuery, id)
+	return err
+}
+
+const deleteAllUsersQuery = "DELETE FROM users;"
+
+func (ur *UserRepository) DeleteAll(ctx context.Context) error {
+	_, err := ur.db.ExecContext(ctx, deleteAllUsersQuery)
 	return err
 }
