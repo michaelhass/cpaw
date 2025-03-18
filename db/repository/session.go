@@ -44,7 +44,7 @@ func (sr *SessionRepository) CreateSession(ctx context.Context, arg CreateSessio
 }
 
 const getSessionByTokenQuery = `
-SELECT (token, expires_at, user_id) FROM sessions
+SELECT token, expires_at, user_id FROM sessions
 WHERE token = $1;
 `
 
@@ -66,5 +66,12 @@ const deleteSessionWithTokenQuery = "DELETE FROM sessions WHERE token = $1;"
 
 func (sr *SessionRepository) DeleteSessionWithToken(ctx context.Context, sessionToken string) error {
 	_, err := sr.db.ExecContext(ctx, deleteSessionWithTokenQuery, sessionToken)
+	return err
+}
+
+const deleteAllSessionsQuery = "DELETE FROM sessions;"
+
+func (sr *SessionRepository) DeleteAll(ctx context.Context) error {
+	_, err := sr.db.ExecContext(ctx, deleteAllSessionsQuery)
 	return err
 }

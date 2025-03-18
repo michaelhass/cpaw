@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -89,6 +90,11 @@ func testGetUserById(repo *UserRepository) func(*testing.T) {
 	return func(t *testing.T) {
 		ctx := context.Background()
 
+		_, err := repo.GetUserByName(ctx, "non_existing_id")
+		if !errors.Is(err, ErrNotFound) {
+			t.Error("Wrong error for not found", err)
+			return
+		}
 		expectUsers, err := createTestUsers(ctx, repo, 5)
 		if err != nil {
 			t.Error(err)
@@ -111,6 +117,11 @@ func testGetUserByName(repo *UserRepository) func(*testing.T) {
 	return func(t *testing.T) {
 		ctx := context.Background()
 
+		_, err := repo.GetUserByName(ctx, "non_existing_user")
+		if !errors.Is(err, ErrNotFound) {
+			t.Error("Wrong error for not found", err)
+			return
+		}
 		expectUsers, err := createTestUsers(ctx, repo, 5)
 		if err != nil {
 			t.Error(err)

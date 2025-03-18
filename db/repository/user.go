@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -100,6 +101,9 @@ func (ur *UserRepository) GetUserByName(ctx context.Context, name string) (model
 	row := ur.db.QueryRowContext(ctx, getUserByNameQuery, name)
 	var user models.User
 	err := row.Scan(&user.Id, &user.CreatedAt, &user.UserName, &user.PasswordHash, &user.Role)
+	if errors.Is(err, sql.ErrNoRows) {
+		return user, ErrNotFound
+	}
 	return user, err
 }
 
