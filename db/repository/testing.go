@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	dbTestDir                string = "../../tmp/tests/"
-	dbTestMigrationSourceUrl string = "file://../migrations"
+	dbTestDir string = "../../tmp/tests/"
 )
 
 func dbTestPath(name string) string {
@@ -33,7 +32,6 @@ func prepareTestDb(name string) (*sql.DB, error) {
 	sqlite, err := db.NewSqlite(
 		db.WithDbName(name),
 		db.WithDbPath(dbTestPath(name)),
-		db.WithMigrationSource(dbTestMigrationSourceUrl),
 	)
 	if err != nil {
 		return nil, err

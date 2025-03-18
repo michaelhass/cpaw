@@ -2,14 +2,19 @@ package db
 
 import (
 	"database/sql"
+	"embed"
 	"errors"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+//go:embed migrations/*.sql
+var migrationFS embed.FS
 
 type Sqlite struct {
 	DB        *sql.DB
@@ -37,32 +42,28 @@ func WithDbName(name string) SqliteOption {
 	}
 }
 
-func WithMigrationSource(sourceUrl string) SqliteOption {
-	return func(conf *SqliteConfig) {
-		conf.migrationsSourceUrl = sourceUrl
-	}
-}
-
 func NewSqlite(opts ...SqliteOption) (*Sqlite, error) {
 	conf := &SqliteConfig{
-		dbName:              "cpaw",
-		migrationsSourceUrl: "file://./db/migrations",
+		dbName: "cpaw",
 	}
+
 	for _, opt := range opts {
 		opt(conf)
 	}
 
 	db, err := sql.Open("sqlite3", conf.dbPath)
+	sourceDriver, err := iofs.New(migrationFS, "migrations")
+	if err != nil {
+		return nil, err
+	}
+
 	config := &sqlite3.Config{}
 	driver, err := sqlite3.WithInstance(db, config)
 	if err != nil {
 		return nil, err
 	}
-	migration, err := migrate.NewWithDatabaseInstance(
-		conf.migrationsSourceUrl,
-		conf.dbName,
-		driver,
-	)
+	migration, err := migrate.NewWithInstance("ifs", sourceDriver, conf.dbName, driver)
+
 	return &Sqlite{
 		DB:        db,
 		driver:    driver,

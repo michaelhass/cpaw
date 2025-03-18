@@ -39,7 +39,6 @@ func (sr *SessionRepository) CreateSession(ctx context.Context, arg CreateSessio
 		expiresAt,
 		arg.UserId,
 	)
-
 	err := row.Scan(&session.Token, &session.ExpiresAt, &session.UserId)
 	return session, err
 }
