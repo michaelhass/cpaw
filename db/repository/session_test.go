@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -28,8 +29,7 @@ func TestSessionRepository(t *testing.T) {
 	sessionRepoTestFunc := func(f func(*testing.T, models.User)) func(*testing.T) {
 		return func(t *testing.T) {
 			t.Cleanup(func() {
-				ctx := context.Background()
-				userRepo.DeleteAll(ctx)
+				userRepo.DeleteAll(context.Background())
 			})
 			testUser, err := userRepo.CreateUser(context.Background(), CreateUserParams{
 				UserName: "Some Name",
@@ -51,6 +51,7 @@ func TestSessionRepository(t *testing.T) {
 func testCreateSession(repo *SessionRepository) func(*testing.T, models.User) {
 	return func(t *testing.T, testUser models.User) {
 		ctx := context.Background()
+
 		params := CreateSessionParams{
 			Token:     "token123",
 			ExpiresAt: time.Now().Add(time.Minute * 15),
@@ -86,35 +87,41 @@ func testCreateSession(repo *SessionRepository) func(*testing.T, models.User) {
 func testGetSessionByToken(repo *SessionRepository) func(*testing.T, models.User) {
 	return func(t *testing.T, testUser models.User) {
 		ctx := context.Background()
-		params := CreateSessionParams{
+
+		expectParams := CreateSessionParams{
 			Token:     "token123",
 			ExpiresAt: time.Now().Add(time.Minute * 15),
 			UserId:    testUser.Id,
 		}
 
-		_, err := repo.GetSessionByToken(ctx, params.Token)
+		for i := range 5 {
+			copy := expectParams
+			copy.Token = fmt.Sprintf("other_%d", i)
+			_, _ = repo.CreateSession(ctx, copy)
+		}
+
+		_, err := repo.GetSessionByToken(ctx, expectParams.Token)
 		if !errors.Is(err, ErrNotFound) {
 			t.Error("Expected 'ErrNotFound'.Got: ", err)
 			return
 		}
 
-		_, _ = repo.CreateSession(ctx, params)
-		session, err := repo.GetSessionByToken(ctx, params.Token)
-
+		_, _ = repo.CreateSession(ctx, expectParams)
+		session, err := repo.GetSessionByToken(ctx, expectParams.Token)
 		if err != nil {
 			t.Error(err)
 			return
 		}
-		if session.Token != params.Token {
-			t.Errorf("'Token' not correct. Expected: %s. Got: %s.", params.Token, session.Token)
+		if session.Token != expectParams.Token {
+			t.Errorf("'Token' not correct. Expected: %s. Got: %s.", expectParams.Token, session.Token)
 			return
 		}
-		if session.ExpiresAt != params.ExpiresAt.Unix() {
-			t.Errorf("'ExpiredAt' not correct. Expected: %s. Got: %s.", params.Token, session.Token)
+		if session.ExpiresAt != expectParams.ExpiresAt.Unix() {
+			t.Errorf("'ExpiredAt' not correct. Expected: %s. Got: %s.", expectParams.Token, session.Token)
 			return
 		}
-		if session.UserId != params.UserId {
-			t.Errorf("'UserId' not corrected. Expected: %s. Got: %s.", params.Token, session.Token)
+		if session.UserId != expectParams.UserId {
+			t.Errorf("'UserId' not corrected. Expected: %s. Got: %s.", expectParams.Token, session.Token)
 			return
 		}
 	}
