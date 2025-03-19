@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"time"
 
 	"github.com/michaelhass/cpaw/db/repository"
@@ -14,6 +15,10 @@ import (
 const (
 	DefaultSessionDuration    time.Duration = time.Minute * 30
 	DefaultSessionTokenLength int           = 32
+)
+
+var (
+	ErrExpiredSession = errors.New("Expired Session")
 )
 
 type AuthService struct {
@@ -112,6 +117,17 @@ func (as *AuthService) SignIn(ctx context.Context, userName string, password str
 
 func (as *AuthService) SignOut(ctx context.Context, sessionToken string) error {
 	return as.sessions.DeleteSessionWithToken(ctx, sessionToken)
+}
+
+func (as *AuthService) VerifyToken(ctx context.Context, sessionToken string) (models.Session, error) {
+	session, err := as.sessions.GetSessionByToken(ctx, sessionToken)
+	if err != nil {
+		return models.Session{}, err
+	}
+	if IsSessionExpired(session) {
+		return models.Session{}, ErrExpiredSession
+	}
+	return session, nil
 }
 
 func generateSessionToken(length int) (string, error) {

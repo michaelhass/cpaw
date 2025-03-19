@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/michaelhass/cpaw/mux"
+	"github.com/michaelhass/cpaw/middleware"
+	cmux "github.com/michaelhass/cpaw/mux"
 	"github.com/michaelhass/cpaw/service"
 )
 
@@ -21,19 +22,16 @@ func NewApiHandler(authService *service.AuthService) *ApiHandler {
 	}
 }
 
-func (api *ApiHandler) RegisterRoutes(mux *mux.Mux) {
+func (api *ApiHandler) RegisterRoutes(mux *cmux.Mux) {
 	mux.HandleFunc("GET /signin", api.handleSignIn)
 	mux.HandleFunc("GET /signout", api.handleSignOut)
 
-	// 	api.Group("/items", func(items *mux.Mux) {
-	// 		items.Use(handler.AuthHandler)
-	// 		items.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-	// 			w.Write([]byte("items"))
-	// 		})
-	// 		items.HandleFunc("GET /{id}", func(w http.ResponseWriter, r *http.Request) {
-	// 			w.Write([]byte("items with id"))
-	// 		})
-	// 	})
+	mux.Group("/items", func(m *cmux.Mux) {
+		m.Use(middleware.AuthProtected(api.AuthService))
+		m.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("Items..."))
+		})
+	})
 }
 
 type signInRequest struct {
