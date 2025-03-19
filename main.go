@@ -31,11 +31,15 @@ func main() {
 
 	userRepository := repository.NewUserRepository(db.DB)
 	sessionRespository := repository.NewSessionRespository(db.DB)
+	itemRepository := repository.NewItemRepository(db.DB)
+
 	authService := service.NewAuthService(sessionRespository, userRepository)
+	itemService := service.NewItemService(itemRepository)
 
 	initialCredentials, err := authService.SetUp(context.Background())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error setting up auth services", err)
+		return
 	}
 	if len(initialCredentials.Id) > 0 {
 		const logMsg string = "--- Created initial user. ---\nid: %s, name: %s, pw: %s\n"
@@ -46,7 +50,7 @@ func main() {
 			initialCredentials.Password,
 		)
 	}
-	log.Println("Auth service is ready.")
+	log.Println("Services are ready.")
 
 	mainMux := mux.NewDefaultMux()
 	mainMux.Use(middleware.Logger)
@@ -73,10 +77,9 @@ func main() {
 		component.Render(r.Context(), w)
 	})
 
-	mainMux.Group("/api/v1", func(api *mux.Mux) {
-		apiHandler := handler.NewApiHandler(authService)
-		apiHandler.RegisterRoutes(api)
-
+	mainMux.Group("/api/v1", func(apiMux *mux.Mux) {
+		apiHandler := handler.NewApiHandler(authService, itemService)
+		apiHandler.RegisterRoutes(apiMux)
 	})
 
 	const port string = ":3000"

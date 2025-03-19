@@ -3,6 +3,8 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/michaelhass/cpaw/constant"
+	"github.com/michaelhass/cpaw/ctx"
 	"github.com/michaelhass/cpaw/mux"
 	"github.com/michaelhass/cpaw/service"
 )
@@ -10,7 +12,7 @@ import (
 func AuthProtected(authService *service.AuthService) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			c, err := r.Cookie("cpaw_session")
+			c, err := r.Cookie(constant.SessionCookieName)
 			if err == http.ErrNoCookie {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
@@ -25,13 +27,14 @@ func AuthProtected(authService *service.AuthService) mux.MiddlewareFunc {
 				return
 			}
 
-			_, err = authService.VerifyToken(r.Context(), c.Value)
+			session, err := authService.VerifyToken(r.Context(), c.Value)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
-			next.ServeHTTP(w, r)
+			ctx := ctx.WithUserId(r.Context(), session.UserId)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
