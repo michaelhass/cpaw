@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/michaelhass/cpaw/constant"
 	"github.com/michaelhass/cpaw/ctx"
 	"github.com/michaelhass/cpaw/db/repository"
 	"github.com/michaelhass/cpaw/middleware"
@@ -35,7 +34,7 @@ func (api *ApiHandler) RegisterRoutes(mux *cmux.Mux) {
 	mux.HandleFunc("GET /signout", api.handleSignOut)
 
 	mux.Group("/items", func(m *cmux.Mux) {
-		m.Use(middleware.AuthProtected(api.authService))
+		m.Use(middleware.AuthProtected(api.authService, sessionCookieName))
 		m.HandleFunc("GET /", api.handleListUserItems)
 		m.HandleFunc("POST /", api.handleCreateItemForUser)
 		m.HandleFunc("GET /{itemId}/", api.handleGetUserItem)
@@ -62,7 +61,7 @@ func (api *ApiHandler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cookie := &http.Cookie{}
-	cookie.Name = constant.SessionCookieName
+	cookie.Name = sessionCookieName
 	cookie.Value = authResult.Session.Token
 	cookie.Expires = time.Unix(authResult.Session.ExpiresAt, 0)
 	http.SetCookie(w, cookie)
@@ -71,7 +70,7 @@ func (api *ApiHandler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *ApiHandler) handleSignOut(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie(constant.SessionCookieName)
+	cookie, err := r.Cookie(sessionCookieName)
 	if errors.Is(err, http.ErrNoCookie) {
 		log.Println("no cookie")
 		w.WriteHeader(http.StatusOK)
@@ -85,7 +84,7 @@ func (api *ApiHandler) handleSignOut(w http.ResponseWriter, r *http.Request) {
 	token := cookie.Value
 	api.authService.SignOut(r.Context(), token)
 	http.SetCookie(w, &http.Cookie{
-		Name:    constant.SessionCookieName,
+		Name:    sessionCookieName,
 		Value:   "",
 		Expires: time.Now(),
 	})

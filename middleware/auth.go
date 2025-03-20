@@ -3,16 +3,15 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/michaelhass/cpaw/constant"
 	"github.com/michaelhass/cpaw/ctx"
 	"github.com/michaelhass/cpaw/mux"
 	"github.com/michaelhass/cpaw/service"
 )
 
-func AuthProtected(authService *service.AuthService) mux.MiddlewareFunc {
+func AuthProtected(authService *service.AuthService, sessionCookieName string) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			c, err := r.Cookie(constant.SessionCookieName)
+			c, err := r.Cookie(sessionCookieName)
 			if err == http.ErrNoCookie {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
