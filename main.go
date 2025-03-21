@@ -3,7 +3,11 @@ package main
 import (
 	"context"
 	"log"
+	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/michaelhass/cpaw/db"
 	"github.com/michaelhass/cpaw/db/repository"
@@ -12,6 +16,7 @@ import (
 	"github.com/michaelhass/cpaw/mux"
 	"github.com/michaelhass/cpaw/service"
 	"github.com/michaelhass/cpaw/views"
+	"golang.org/x/sync/errgroup"
 )
 
 func main() {
@@ -24,6 +29,7 @@ func main() {
 		return
 	}
 	defer db.Close()
+	defer log.Println("CLOSING")
 	if err := db.SetUp(); err != nil {
 		log.Fatal(err)
 		return
@@ -82,9 +88,35 @@ func main() {
 		apiHandler.RegisterRoutes(apiMux)
 	})
 
-	const port string = ":3000"
-	log.Println("Starting server at port", port)
-	if err := http.ListenAndServe(port, mainMux); err != nil {
-		log.Fatal(err)
+	const addr string = ":3000"
+	runServer(addr, mainMux)
+}
+
+func runServer(addr string, mux *mux.Mux) {
+	log.Println("Starting server at addr", addr)
+
+	mainCtx, _ := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
+	server := &http.Server{
+		Addr:    addr,
+		Handler: mux,
+		BaseContext: func(_ net.Listener) context.Context {
+			return mainCtx
+		},
+	}
+
+	errGroup, groupCtx := errgroup.WithContext(mainCtx)
+
+	errGroup.Go(func() error {
+		return server.ListenAndServe()
+	})
+
+	errGroup.Go(func() error {
+		<-groupCtx.Done()
+		return server.Shutdown(context.Background())
+	})
+
+	if err := errGroup.Wait(); err != nil {
+		log.Println("Exit: \n", err)
 	}
 }
