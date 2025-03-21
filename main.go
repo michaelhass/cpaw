@@ -28,8 +28,12 @@ func main() {
 		log.Fatal(err)
 		return
 	}
-	defer db.Close()
-	defer log.Println("CLOSING")
+
+	defer func() {
+		db.Close()
+		log.Println("DB closed")
+	}()
+
 	if err := db.SetUp(); err != nil {
 		log.Fatal(err)
 		return
@@ -60,6 +64,7 @@ func main() {
 
 	mainMux := mux.NewDefaultMux()
 	mainMux.Use(middleware.Logger)
+	mainMux.Use(middleware.Recover)
 
 	mainMux.Handle("/assets/css/", http.StripPrefix("/assets/css/", http.FileServer(http.Dir("views/assets/css"))))
 
@@ -89,13 +94,14 @@ func main() {
 	})
 
 	const addr string = ":3000"
-	runServer(addr, mainMux)
+	listenAndServe(addr, mainMux)
 }
 
-func runServer(addr string, mux *mux.Mux) {
+func listenAndServe(addr string, mux *mux.Mux) {
 	log.Println("Starting server at addr", addr)
 
-	mainCtx, _ := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	mainCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	server := &http.Server{
 		Addr:    addr,
@@ -117,6 +123,6 @@ func runServer(addr string, mux *mux.Mux) {
 	})
 
 	if err := errGroup.Wait(); err != nil {
-		log.Println("Exit: \n", err)
+		log.Println("Exit:", err)
 	}
 }
