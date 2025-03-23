@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"time"
 
@@ -38,11 +37,6 @@ func (api *ApiHandler) RegisterRoutes(mux *cmux.Mux) {
 		"PUT /auth/",
 		authProtected(http.HandlerFunc(api.handleUpdateUserPassword)),
 	)
-	// mux.Group("/user", func(m *cmux.Mux) {
-	// 	m.Use(middleware.AuthProtected(api.authService, sessionCookieName))
-
-	// 	m.HandleFunc("PUT /", api.handleUpdateUserPassword)
-	// })
 
 	mux.Group("/items", func(m *cmux.Mux) {
 		m.Use(middleware.AuthProtected(api.authService, sessionCookieName))
@@ -84,7 +78,6 @@ func (api *ApiHandler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 func (api *ApiHandler) handleSignOut(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(sessionCookieName)
 	if errors.Is(err, http.ErrNoCookie) {
-		log.Println("no cookie")
 		w.WriteHeader(http.StatusOK)
 		return
 	}

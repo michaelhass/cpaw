@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 
 	"github.com/michaelhass/cpaw/db"
@@ -38,7 +37,6 @@ func prepareTestDb(name string) (*sql.DB, error) {
 	}
 	err = sqlite.SetUp()
 	if err != nil {
-		log.Println("bla")
 		return nil, err
 	}
 	return sqlite.DB, nil
