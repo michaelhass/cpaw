@@ -65,6 +65,7 @@ func main() {
 	mainMux := mux.NewDefaultMux()
 	mainMux.Use(middleware.Logger)
 	mainMux.Use(middleware.Recover)
+	mainMux.Use(middleware.AddTrailingSlash)
 
 	mainMux.Handle("/assets/css/", http.StripPrefix("/assets/css/", http.FileServer(http.Dir("views/assets/css"))))
 

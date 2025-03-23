@@ -9,7 +9,7 @@ func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		statusWriter := newStatusResponseWriter(w)
 		next.ServeHTTP(statusWriter, r)
-		log.Println(r.Method, r.URL.Path, statusWriter.statusCode)
+		log.Println(r.Method, r.URL.String(), statusWriter.statusCode)
 	})
 }
 
