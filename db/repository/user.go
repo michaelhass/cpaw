@@ -135,7 +135,7 @@ func (ur *UserRepository) ListUsers(ctx context.Context) ([]models.User, error) 
 }
 
 type UpdateUserPasswordParams struct {
-	Id       string
+	UserId   string
 	Password string
 }
 
@@ -150,7 +150,7 @@ func (ur *UserRepository) UpdatePassword(ctx context.Context, args UpdateUserPas
 	if err != nil {
 		return err
 	}
-	_, err = ur.db.ExecContext(ctx, updatePasswordQuery, passwordHash, args.Id)
+	_, err = ur.db.ExecContext(ctx, updatePasswordQuery, passwordHash, args.UserId)
 	return err
 }
 

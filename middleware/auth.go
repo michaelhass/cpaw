@@ -8,10 +8,10 @@ import (
 	"github.com/michaelhass/cpaw/service"
 )
 
-func AuthProtected(authService *service.AuthService, sessionCookieName string) mux.MiddlewareFunc {
+func AuthProtected(authService *service.AuthService, cookieName string) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			c, err := r.Cookie(sessionCookieName)
+			c, err := r.Cookie(cookieName)
 			if err == http.ErrNoCookie {
 				w.WriteHeader(http.StatusUnauthorized)
 				return

@@ -30,8 +30,19 @@ func NewApiHandler(
 }
 
 func (api *ApiHandler) RegisterRoutes(mux *cmux.Mux) {
-	mux.HandleFunc("GET /signin", api.handleSignIn)
-	mux.HandleFunc("GET /signout", api.handleSignOut)
+	authProtected := middleware.AuthProtected(api.authService, sessionCookieName)
+
+	mux.HandleFunc("GET /auth/signin/", api.handleSignIn)
+	mux.HandleFunc("GET /auth/signout/", api.handleSignOut)
+	mux.Handle(
+		"PUT /auth/",
+		authProtected(http.HandlerFunc(api.handleUpdateUserPassword)),
+	)
+	// mux.Group("/user", func(m *cmux.Mux) {
+	// 	m.Use(middleware.AuthProtected(api.authService, sessionCookieName))
+
+	// 	m.HandleFunc("PUT /", api.handleUpdateUserPassword)
+	// })
 
 	mux.Group("/items", func(m *cmux.Mux) {
 		m.Use(middleware.AuthProtected(api.authService, sessionCookieName))
@@ -64,6 +75,7 @@ func (api *ApiHandler) handleSignIn(w http.ResponseWriter, r *http.Request) {
 	cookie.Name = sessionCookieName
 	cookie.Value = authResult.Session.Token
 	cookie.Expires = time.Unix(authResult.Session.ExpiresAt, 0)
+	cookie.Path = "/"
 	http.SetCookie(w, cookie)
 
 	writeJSONResponse(w, authResult.User, http.StatusAccepted)
@@ -91,9 +103,43 @@ func (api *ApiHandler) handleSignOut(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+type updatePasswordRequest struct {
+	Password string `json:"password"`
+}
+
+func (api *ApiHandler) handleUpdateUserPassword(w http.ResponseWriter, r *http.Request) {
+	userId, ok := ctx.GetUserId(r.Context())
+	if !ok || len(userId) == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	var body updatePasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err := api.authService.UpdatePassword(r.Context(), service.UpdatePasswordParams{
+		UserId:   userId,
+		Password: body.Password,
+	})
+
+	if errors.Is(err, service.ErrMinPasswordLength) {
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	} else if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (api *ApiHandler) handleGetUserItem(w http.ResponseWriter, r *http.Request) {
 	userId, ok := ctx.GetUserId(r.Context())
-	if !ok && len(userId) > 0 {
+	if !ok || len(userId) == 0 {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -120,7 +166,7 @@ func (api *ApiHandler) handleGetUserItem(w http.ResponseWriter, r *http.Request)
 
 func (api *ApiHandler) handleListUserItems(w http.ResponseWriter, r *http.Request) {
 	userId, ok := ctx.GetUserId(r.Context())
-	if !ok && len(userId) > 0 {
+	if !ok || len(userId) == 0 {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -139,7 +185,7 @@ type createItemRequestBody struct {
 
 func (api *ApiHandler) handleCreateItemForUser(w http.ResponseWriter, r *http.Request) {
 	userId, ok := ctx.GetUserId(r.Context())
-	if !ok && len(userId) > 0 {
+	if !ok || len(userId) == 0 {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -165,7 +211,7 @@ func (api *ApiHandler) handleCreateItemForUser(w http.ResponseWriter, r *http.Re
 
 func (api *ApiHandler) handleDeleteUserItemById(w http.ResponseWriter, r *http.Request) {
 	userId, ok := ctx.GetUserId(r.Context())
-	if !ok && len(userId) > 0 {
+	if !ok || len(userId) == 0 {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}

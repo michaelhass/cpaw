@@ -171,7 +171,7 @@ func testUpdatePassword(repo *UserRepository) func(*testing.T) {
 
 		updatedPw := "updated_pw"
 		err = repo.UpdatePassword(ctx, UpdateUserPasswordParams{
-			Id:       initialUser.Id,
+			UserId:   initialUser.Id,
 			Password: updatedPw,
 		})
 		if err != nil {

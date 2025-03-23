@@ -15,10 +15,12 @@ import (
 const (
 	DefaultSessionDuration    time.Duration = time.Minute * 30
 	DefaultSessionTokenLength int           = 32
+	DefaultMinPasswordLength  int           = 6
 )
 
 var (
-	ErrExpiredSession = errors.New("Expired Session")
+	ErrExpiredSession    = errors.New("Expired Session")
+	ErrMinPasswordLength = errors.New("Password should be min. 6 charachters long")
 )
 
 type AuthService struct {
@@ -128,6 +130,15 @@ func (as *AuthService) VerifyToken(ctx context.Context, sessionToken string) (mo
 		return models.Session{}, ErrExpiredSession
 	}
 	return session, nil
+}
+
+type UpdatePasswordParams = repository.UpdateUserPasswordParams
+
+func (as *AuthService) UpdatePassword(ctx context.Context, params UpdatePasswordParams) error {
+	if len(params.Password) < DefaultMinPasswordLength {
+		return ErrMinPasswordLength
+	}
+	return as.users.UpdatePassword(ctx, params)
 }
 
 func generateSessionToken(length int) (string, error) {

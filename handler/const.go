@@ -1,5 +1,5 @@
 package handler
 
 const (
-	sessionCookieName = "cpaw_session"
+	sessionCookieName string = "cpaw_session"
 )
