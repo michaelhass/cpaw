@@ -15,7 +15,6 @@ import (
 	"github.com/michaelhass/cpaw/middleware"
 	"github.com/michaelhass/cpaw/mux"
 	"github.com/michaelhass/cpaw/service"
-	"github.com/michaelhass/cpaw/views"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -68,16 +67,8 @@ func main() {
 	mainMux.Use(middleware.AddTrailingSlash)
 
 	mainMux.Handle("/assets/css/", http.StripPrefix("/assets/css/", http.FileServer(http.Dir("views/assets/css"))))
-
-	mainMux.HandleFunc("GET /login/", func(w http.ResponseWriter, r *http.Request) {
-		component := views.WithDefaultPage(views.Login())
-		component.Render(r.Context(), w)
-	})
-
-	mainMux.HandleFunc("GET /signup/", func(w http.ResponseWriter, r *http.Request) {
-		component := views.WithDefaultPage(views.SignUp())
-		component.Render(r.Context(), w)
-	})
+	templateHandler := handler.NewTemplateHandler(authService, itemService)
+	templateHandler.RegisterRoutes(mainMux)
 
 	mainMux.Group("/api/v1", func(apiMux *mux.Mux) {
 		apiHandler := handler.NewApiHandler(authService, itemService)
