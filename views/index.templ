@@ -12,6 +12,7 @@ templ WithDefaultPage(component templ.Component) {
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<meta name="color-scheme" content="light dark"/>
 			<link rel="stylesheet" href="/static/css/pico.indigo.min.css"/>
+			<link rel="stylesheet" href="/static/css/cpaw.css"/>
 			<script src="/static/js/htmx.min.js"></script>
 			<title>cpaw</title>
 		</head>
@@ -49,10 +50,10 @@ templ SignInPage() {
 		<hgroup>
 			<h1>Sign in</h1>
 		</hgroup>
-		<form hx-post="/signin">
+		<form hx-post="/signin" novalidate>
 			<fieldset>
-					<input name="user_name" placeholder="Username"/>
-					<input type="password" name="password" placeholder="Password"/>
+					<input type="text" name="user_name" placeholder="Username" aria-label="Text"/>
+					<input type="password" name="password" placeholder="Password" aria-label="Password"/>
 			</fieldset>
 			<input
 				type="submit"
@@ -77,9 +78,9 @@ templ ItemsPage(items []models.Item) {
 			<h1>Clipboard</h1>
 		</hgroup>
 
-		<form hx-post="/items" hx-target="#items_list">
+		<form hx-post="/items" hx-target="#item_list" novalidate>
 			<fieldset role="group">
-				<input type="text" name="content" placeholder=""/>
+				<input type="text" name="content" placeholder="test" aria-label="Text"/>
 				<input type="submit" value="Paste"/>
 			</fieldset>
 		</form>
@@ -90,9 +91,21 @@ templ ItemsPage(items []models.Item) {
 }
 
 templ ItemList(items []models.Item) {
-	<div id="items_list">
-		for _, item := range items {
-			<article>{ item.Content }</article>
-		}
+	<div id="item_list">
+	for _, item := range items {
+		<article id={ item.Id }>
+			<div class="items-grid">
+				<div>{ item.Content }</div>
+				<button
+					class="secondary"
+					hx-delete={ "items/" + item.Id }
+					hx-swap="delete"
+					hx-target={ "#" + item.Id }
+				>
+					Delete
+				</button>
+			</div>
+		</article>
+	}
 	</div>
 }

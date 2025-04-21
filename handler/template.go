@@ -38,6 +38,7 @@ func (th *TemplateHandler) RegisterRoutes(mux *cmux.Mux) {
 		items.Use(middleware.AuthProtected(th.authService, sessionCookieName))
 		items.Handle("GET /", th.itemsPage("/signin/"))
 		items.HandleFunc("POST /", th.handleCreateItem)
+		items.HandleFunc("DELETE /{itemId}/", th.handleDeleteItem)
 	})
 }
 
@@ -98,7 +99,7 @@ func (th *TemplateHandler) handleCreateItem(w http.ResponseWriter, r *http.Reque
 	context := r.Context()
 	userId, ok := ctx.GetUserId(context)
 	if !ok || len(userId) == 0 {
-		http.Redirect(w, r, "/signin/", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
@@ -110,14 +111,39 @@ func (th *TemplateHandler) handleCreateItem(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	items, err := th.itemService.ListItemsForUser(context, userId)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		return
+	}
+
+	views.ItemList(items).Render(context, w)
+}
+
+func (th *TemplateHandler) handleDeleteItem(w http.ResponseWriter, r *http.Request) {
+	context := r.Context()
+	userId, ok := ctx.GetUserId(context)
+	if !ok || len(userId) == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	itemId := r.PathValue("itemId")
+	err := th.itemService.DeleteItemForUser(context, service.DeleteUserItemParams{
+		ItemId: itemId,
+		UserId: userId,
+	})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	items, err := th.itemService.ListItemsForUser(context, userId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

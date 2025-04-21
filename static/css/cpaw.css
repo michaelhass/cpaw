@@ -1,0 +1,8 @@
+ .items-grid {
+    display: grid;
+    grid-template-columns: auto 80px;
+    grid-column-gap: 16px
+    grid-row-gap: 16px
+    justify-items: stretch
+    align-items: stretch
+ }
