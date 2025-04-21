@@ -4,31 +4,13 @@ import (
 	"github.com/michaelhass/cpaw/models"
 )
 
-templ ItemsPage(items []models.Item) {
-	<main class="container">
-		<nav>
-			<ul>
-				<li><h3>cpaw</h3></li>
-			</ul>
-			<ul>
-				<li><button hx-post="/signout" class="contrast">Sign out</button></li>
-				<li><a href="#" class="contrast">About</a></li>
-			</ul>
-		</nav>
-		<hgroup>
-			<h1>Clipboard</h1>
-		</hgroup>
-
-		<form hx-post="/items" hx-target="#item_list" novalidate>
-			<fieldset role="group">
-				<input type="text" name="content" placeholder="test" aria-label="Text"/>
-				<input type="submit" value="Paste"/>
-			</fieldset>
-		</form>
-
-		@ItemList(items)
-
-	</main>
+templ CreateItemForm() {
+	<form hx-post="/items" hx-target="#item_list" novalidate>
+		<fieldset role="group">
+		<input type="text" name="content" placeholder="test" aria-label="Text"/>
+			<input type="submit" value="Paste"/>
+		</fieldset>
+	</form>
 }
 
 templ ItemList(items []models.Item) {

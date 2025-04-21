@@ -1,6 +1,10 @@
 package views
 
-templ WithDefaultPage(component templ.Component) {
+import (
+	"github.com/michaelhass/cpaw/models"
+)
+
+templ withDefaultPage(component templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -18,43 +22,53 @@ templ WithDefaultPage(component templ.Component) {
 	</html>
 }
 
-templ IndexPage() {
+type IndexPageData struct {
+	User models.User
+}
+
+func (pageData IndexPageData) isLoggedIn() bool {
+	return len(pageData.User.Id) > 0
+}
+
+templ IndexPage(pageData IndexPageData) {
+	@withDefaultPage(indexPage(pageData))
+}
+
+templ indexPage(pageData IndexPageData) {
 	<main class="container">
 		<nav>
 			<ul>
 				<li><h3>cpaw</h3></li>
 			</ul>
 			<ul>
-				<li><a href="/signin" class="contrast">Sign in</a></li>
 				<li><a href="#" class="contrast">About</a></li>
+				if pageData.isLoggedIn() {
+					<li><button class="secondary outline" hx-post="/signout" hx-target="body">Signout</button></li>
+				}
 			</ul>
 		</nav>
-		<h2>Welcome</h2>
+		if pageData.isLoggedIn() {
+			<h2>Welcome</h2>
+			@CreateItemForm()
+			<div hx-get="/items" hx-trigger="load">
+				@ItemList([]models.Item{})
+			</div>
+		} else {
+			<h2>Sign in</h2>
+			@SignInForm()
+		}
 	</main>
 }
 
-templ SignInPage() {
-	<main class="container">
-		<nav>
-			<ul>
-				<li><h3>cpaw</h3></li>
-			</ul>
-			<ul>
-				<li><a href="#" class="contrast">About</a></li>
-			</ul>
-		</nav>
-		<hgroup>
-			<h1>Sign in</h1>
-		</hgroup>
-		<form hx-post="/signin" novalidate>
-			<fieldset>
-					<input type="text" name="user_name" placeholder="Username" aria-label="Text"/>
-					<input type="password" name="password" placeholder="Password" aria-label="Password"/>
-			</fieldset>
+templ SignInForm() {
+	<form hx-post="/signin" novalidate hx-target="body">
+		<fieldset>
+			<input type="text" name="user_name" placeholder="Username" aria-label="Text"/>
+			<input type="password" name="password" placeholder="Password" aria-label="Password"/>
+		</fieldset>
 			<input
 				type="submit"
 				value="login"
 			/>
-		</form>
-	</main>
+	</form>
 }

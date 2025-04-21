@@ -37,3 +37,28 @@ func AuthProtected(authService *service.AuthService, cookieName string) mux.Midd
 		})
 	}
 }
+
+func AuthenticatedUser(authService *service.AuthService, cookieName string) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			c, err := r.Cookie(cookieName)
+			if err != nil && c.Valid() != nil {
+				next.ServeHTTP(w, r)
+				return
+			}
+			session, err := authService.VerifyToken(r.Context(), c.Value)
+			if err != nil {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			user, err := authService.GetUserById(r.Context(), session.UserId)
+			if err != nil {
+				next.ServeHTTP(w, r)
+				return
+			}
+			ctx := ctx.WithUser(r.Context(), user)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}

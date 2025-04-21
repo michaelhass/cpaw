@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/michaelhass/cpaw/ctx"
 	"github.com/michaelhass/cpaw/middleware"
 	cmux "github.com/michaelhass/cpaw/mux"
@@ -28,31 +27,32 @@ func NewTemplateHandler(
 }
 
 func (th *TemplateHandler) RegisterRoutes(mux *cmux.Mux) {
-	mux.Handle("/", th.indexPage())
-	mux.Handle("GET /signin/", th.signInPage())
-	mux.HandleFunc("POST /signin/", th.signIn("/items/"))
-	mux.HandleFunc("POST /signout/", th.signout)
+	mux.Use(middleware.AuthenticatedUser(th.authService, sessionCookieName))
+	mux.HandleFunc("/", th.handleIndexPage)
+
+	mux.HandleFunc("POST /signin/", th.handleSignIn("/"))
+	mux.HandleFunc("POST /signout/", th.handleSignOut("/"))
 
 	// mux.Handle("GET /items/", th.itemsPage("/signin/"))
 	mux.Group("/items", func(items *cmux.Mux) {
 		items.Use(middleware.AuthProtected(th.authService, sessionCookieName))
-		items.Handle("GET /", th.itemsPage("/signin/"))
+		items.HandleFunc("GET /", th.handleGetItems)
 		items.HandleFunc("POST /", th.handleCreateItem)
 		items.HandleFunc("DELETE /{itemId}/", th.handleDeleteItem)
 	})
 }
 
-func (th *TemplateHandler) indexPage() http.Handler {
-	indexPage := views.WithDefaultPage(views.IndexPage())
-	return templ.Handler(indexPage)
+func (th *TemplateHandler) handleIndexPage(w http.ResponseWriter, r *http.Request) {
+	context := r.Context()
+	user, _ := ctx.GetUser(context)
+	viewData := views.IndexPageData{
+		User: user,
+	}
+	indexPage := views.IndexPage(viewData)
+	indexPage.Render(context, w)
 }
 
-func (th *TemplateHandler) signInPage() http.Handler {
-	loginPage := views.WithDefaultPage(views.SignInPage())
-	return templ.Handler(loginPage)
-}
-
-func (th *TemplateHandler) signIn(onSuccesRedirect string) func(w http.ResponseWriter, r *http.Request) {
+func (th *TemplateHandler) handleSignIn(onSuccesRedirect string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			user     = r.FormValue("user_name")
@@ -72,27 +72,39 @@ func (th *TemplateHandler) signIn(onSuccesRedirect string) func(w http.ResponseW
 		cookie.Path = "/"
 		http.SetCookie(w, cookie)
 
-		http.Redirect(w, r, onSuccesRedirect, http.StatusAccepted)
+		http.Redirect(w, r, onSuccesRedirect, http.StatusSeeOther)
 	}
 }
 
-func (th *TemplateHandler) signout(w http.ResponseWriter, r *http.Request) {
+func (th *TemplateHandler) handleSignOut(redirectTo string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie(sessionCookieName)
 
-}
-
-func (th *TemplateHandler) itemsPage(redirectTo string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		context := r.Context()
-		userId, ok := ctx.GetUserId(context)
-		if !ok || len(userId) == 0 {
-			http.Redirect(w, r, redirectTo, http.StatusUnauthorized)
-			return
+		if err == nil {
+			token := cookie.Value
+			th.authService.SignOut(r.Context(), token)
 		}
 
-		items, _ := th.itemService.ListItemsForUser(context, userId)
-		itemsPage := views.WithDefaultPage(views.ItemsPage(items))
-		itemsPage.Render(r.Context(), w)
-	})
+		http.SetCookie(w, &http.Cookie{
+			Name:    sessionCookieName,
+			Value:   "",
+			Expires: time.Now(),
+		})
+		http.Redirect(w, r, redirectTo, http.StatusSeeOther)
+	}
+}
+
+func (th *TemplateHandler) handleGetItems(w http.ResponseWriter, r *http.Request) {
+	context := r.Context()
+	userId, ok := ctx.GetUserId(context)
+	if !ok || len(userId) == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	items, _ := th.itemService.ListItemsForUser(context, userId)
+	itemsList := views.ItemList(items)
+	itemsList.Render(r.Context(), w)
 }
 
 func (th *TemplateHandler) handleCreateItem(w http.ResponseWriter, r *http.Request) {
