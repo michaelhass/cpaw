@@ -1,0 +1,32 @@
+package views
+
+import (
+	"github.com/michaelhass/cpaw/models"
+)
+
+type SettingsPageData struct {
+	User models.User
+}
+
+templ SettingsPage(pageData SettingsPageData) {
+	@withDefaultPage(settingsPage(pageData))
+}
+
+templ settingsPage(pageData SettingsPageData) {
+	<main class="container">
+		<nav>
+			<ul>
+				<li><h3>cpaw</h3></li>
+			</ul>
+			<ul>
+				<li><a href="/" class="contrast">Home</a></li>
+				<li><button class="secondary outline" hx-post="/signout" hx-target="body">Signout</button></li>
+			</ul>
+		</nav>
+		<br><br>
+
+		<h2>Settings</h2>
+
+	</main>
+
+}

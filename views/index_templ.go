@@ -112,7 +112,7 @@ func indexPage(pageData IndexPageData) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if pageData.isLoggedIn() {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<li><button class=\"secondary outline\" hx-post=\"/signout\" hx-target=\"body\">Signout</button></li>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<li><a href=\"/settings\" class=\"contrast\">Settings</a></li><li><button class=\"secondary outline\" hx-post=\"/signout\" hx-target=\"body\">Signout</button></li>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

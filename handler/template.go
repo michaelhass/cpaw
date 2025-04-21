@@ -39,6 +39,11 @@ func (th *TemplateHandler) RegisterRoutes(mux *cmux.Mux) {
 		items.HandleFunc("POST /", th.handleCreateItem)
 		items.HandleFunc("DELETE /{itemId}/", th.handleDeleteItem)
 	})
+
+	mux.Group("/settings", func(settings *cmux.Mux) {
+		settings.Use(middleware.AuthProtected(th.authService, sessionCookieName))
+		settings.HandleFunc("GET /", th.handleSettingsPage)
+	})
 }
 
 func (th *TemplateHandler) handleIndexPage(w http.ResponseWriter, r *http.Request) {
@@ -147,4 +152,14 @@ func (th *TemplateHandler) handleDeleteItem(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func (th *TemplateHandler) handleSettingsPage(w http.ResponseWriter, r *http.Request) {
+	context := r.Context()
+	user, _ := ctx.GetUser(context)
+	viewData := views.SettingsPageData{
+		User: user,
+	}
+	settingsPage := views.SettingsPage(viewData)
+	settingsPage.Render(context, w)
 }

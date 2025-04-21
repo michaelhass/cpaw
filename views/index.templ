@@ -42,6 +42,7 @@ templ indexPage(pageData IndexPageData) {
 			</ul>
 			<ul>
 				if pageData.isLoggedIn() {
+					<li><a href="/settings" class="contrast">Settings</a></li>
 					<li><button class="secondary outline" hx-post="/signout" hx-target="body">Signout</button></li>
 				}
 			</ul>
