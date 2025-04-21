@@ -1,0 +1,56 @@
+package views
+
+import (
+	"github.com/michaelhass/cpaw/models"
+)
+
+templ ItemsPage(items []models.Item) {
+	<main class="container">
+		<nav>
+			<ul>
+				<li><h3>cpaw</h3></li>
+			</ul>
+			<ul>
+				<li><button hx-post="/signout" class="contrast">Sign out</button></li>
+				<li><a href="#" class="contrast">About</a></li>
+			</ul>
+		</nav>
+		<hgroup>
+			<h1>Clipboard</h1>
+		</hgroup>
+
+		<form hx-post="/items" hx-target="#item_list" novalidate>
+			<fieldset role="group">
+				<input type="text" name="content" placeholder="test" aria-label="Text"/>
+				<input type="submit" value="Paste"/>
+			</fieldset>
+		</form>
+
+		@ItemList(items)
+
+	</main>
+}
+
+templ ItemList(items []models.Item) {
+	<div id="item_list">
+	for _, item := range items {
+		@Item(item)
+	}
+	</div>
+}
+
+templ Item(item models.Item) {
+	<article id={ "list_item_" + item.Id }>
+		<div class="items-grid">
+			<div>{ item.Content }</div>
+			<button
+				class="secondary"
+				hx-delete={ "items/" + item.Id }
+				hx-swap="delete"
+				hx-target={"#list_item_" + item.Id }
+			>
+				Delete
+			</button>
+		</div>
+	</article>
+}
