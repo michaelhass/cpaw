@@ -33,7 +33,7 @@ func CreateItemForm() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form hx-post=\"/items\" hx-target=\"#item_list\" novalidate><fieldset role=\"group\"><input type=\"text\" name=\"content\" placeholder=\"test\" aria-label=\"Text\"> <input type=\"submit\" value=\"Paste\"></fieldset></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form hx-post=\"/items\" hx-target=\"#item_list\" hx-swap=\"afterbegin\" novalidate><fieldset role=\"group\"><input type=\"text\" name=\"content\" placeholder=\"\" aria-label=\"Text\"> <input type=\"submit\" value=\"Paste\"></fieldset></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

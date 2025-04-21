@@ -5,9 +5,9 @@ import (
 )
 
 templ CreateItemForm() {
-	<form hx-post="/items" hx-target="#item_list" novalidate>
+	<form hx-post="/items" hx-target="#item_list" hx-swap="afterbegin" novalidate>
 		<fieldset role="group">
-		<input type="text" name="content" placeholder="test" aria-label="Text"/>
+		<input type="text" name="content" placeholder="" aria-label="Text"/>
 			<input type="submit" value="Paste"/>
 		</fieldset>
 	</form>

@@ -41,14 +41,14 @@ templ indexPage(pageData IndexPageData) {
 				<li><h3>cpaw</h3></li>
 			</ul>
 			<ul>
-				<li><a href="#" class="contrast">About</a></li>
 				if pageData.isLoggedIn() {
 					<li><button class="secondary outline" hx-post="/signout" hx-target="body">Signout</button></li>
 				}
 			</ul>
 		</nav>
+		<br><br>
 		if pageData.isLoggedIn() {
-			<h2>Welcome</h2>
+			<h2>Clipboard</h2>
 			@CreateItemForm()
 			<div hx-get="/items" hx-trigger="load">
 				@ItemList([]models.Item{})

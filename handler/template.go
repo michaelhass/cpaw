@@ -33,7 +33,6 @@ func (th *TemplateHandler) RegisterRoutes(mux *cmux.Mux) {
 	mux.HandleFunc("POST /signin/", th.handleSignIn("/"))
 	mux.HandleFunc("POST /signout/", th.handleSignOut("/"))
 
-	// mux.Handle("GET /items/", th.itemsPage("/signin/"))
 	mux.Group("/items", func(items *cmux.Mux) {
 		items.Use(middleware.AuthProtected(th.authService, sessionCookieName))
 		items.HandleFunc("GET /", th.handleGetItems)
@@ -52,7 +51,7 @@ func (th *TemplateHandler) handleIndexPage(w http.ResponseWriter, r *http.Reques
 	indexPage.Render(context, w)
 }
 
-func (th *TemplateHandler) handleSignIn(onSuccesRedirect string) func(w http.ResponseWriter, r *http.Request) {
+func (th *TemplateHandler) handleSignIn(onSuccesRedirect string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			user     = r.FormValue("user_name")
@@ -116,7 +115,7 @@ func (th *TemplateHandler) handleCreateItem(w http.ResponseWriter, r *http.Reque
 	}
 
 	content := r.FormValue("content")
-	_, err := th.itemService.CreateItem(context, service.CreateItemsParams{
+	item, err := th.itemService.CreateItem(context, service.CreateItemsParams{
 		Content: content,
 		UserId:  userId,
 	})
@@ -126,13 +125,7 @@ func (th *TemplateHandler) handleCreateItem(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	items, err := th.itemService.ListItemsForUser(context, userId)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	views.ItemList(items).Render(context, w)
+	views.Item(item).Render(context, w)
 }
 
 func (th *TemplateHandler) handleDeleteItem(w http.ResponseWriter, r *http.Request) {
@@ -153,11 +146,5 @@ func (th *TemplateHandler) handleDeleteItem(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	items, err := th.itemService.ListItemsForUser(context, userId)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	views.ItemList(items).Render(context, w)
+	w.WriteHeader(http.StatusAccepted)
 }
