@@ -29,7 +29,7 @@ func WithDefaultPage(component templ.Component) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><meta name=\"color-scheme\" content=\"light dark\"><link rel=\"stylesheet\" href=\"/assets/css/pico.indigo.min.css\"><title>cpaw</title></head><body>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><meta name=\"color-scheme\" content=\"light dark\"><link rel=\"stylesheet\" href=\"/static/css/pico.indigo.min.css\"><script src=\"/static/js/htmx.min.js\"></script><title>cpaw</title></head><body>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -95,7 +95,7 @@ func Login() templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<main class=\"container\"><nav><ul><li><h3>cpaw</h3></li></ul><ul><li><a href=\"/signup\" class=\"contrast\">Sign up</a></li><li><a href=\"#\" class=\"contrast\">About</a></li></ul></nav><hgroup><h1>Welcome</h1></hgroup><form><fieldset><label>First name <input name=\"first_name\" placeholder=\"First name\" autocomplete=\"given-name\"></label> <label>Email <input type=\"email\" name=\"email\" placeholder=\"Email\" autocomplete=\"email\"></label></fieldset><input type=\"submit\" value=\"login\"></form></main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<main class=\"container\"><nav><ul><li><h3>cpaw</h3></li></ul><ul><li><a href=\"/signup\" class=\"contrast\">Sign up</a></li><li><a href=\"#\" class=\"contrast\">About</a></li></ul></nav><hgroup><h1>Welcome</h1></hgroup><form hx-post=\"/signin\" hx-target=\"body\"><fieldset><label>Username <input name=\"user_name\" placeholder=\"Username\"></label> <label>Password <input type=\"password\" name=\"password\" placeholder=\"Password\"></label></fieldset><input type=\"submit\" value=\"login\"></form></main>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

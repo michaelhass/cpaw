@@ -7,7 +7,8 @@ templ WithDefaultPage(component templ.Component) {
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<meta name="color-scheme" content="light dark"/>
-			<link rel="stylesheet" href="/assets/css/pico.indigo.min.css"/>
+			<link rel="stylesheet" href="/static/css/pico.indigo.min.css"/>
+			<script src="/static/js/htmx.min.js"></script>
 			<title>cpaw</title>
 		</head>
 		<body>
@@ -45,15 +46,15 @@ templ Login() {
 		<hgroup>
 			<h1>Welcome</h1>
 		</hgroup>
-		<form>
+		<form hx-post="/signin" hx-target="body">
 			<fieldset>
 				<label>
-					First name
-					<input name="first_name" placeholder="First name" autocomplete="given-name"/>
+					Username
+					<input name="user_name" placeholder="Username"/>
 				</label>
 				<label>
-					Email
-					<input type="email" name="email" placeholder="Email" autocomplete="email"/>
+					Password
+					<input type="password" name="password" placeholder="Password"/>
 				</label>
 			</fieldset>
 			<input

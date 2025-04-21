@@ -64,13 +64,16 @@ func main() {
 	mainMux := mux.NewDefaultMux()
 	mainMux.Use(middleware.Logger)
 	mainMux.Use(middleware.Recover)
-	mainMux.Use(middleware.AddTrailingSlash)
 
-	mainMux.Handle("/assets/css/", http.StripPrefix("/assets/css/", http.FileServer(http.Dir("views/assets/css"))))
-	templateHandler := handler.NewTemplateHandler(authService, itemService)
-	templateHandler.RegisterRoutes(mainMux)
+	mainMux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	mainMux.Group("", func(m *mux.Mux) {
+		m.Use(middleware.AddTrailingSlash)
+		templateHandler := handler.NewTemplateHandler(authService, itemService)
+		templateHandler.RegisterRoutes(m)
+	})
 
 	mainMux.Group("/api/v1", func(apiMux *mux.Mux) {
+		apiMux.Use(middleware.AddTrailingSlash)
 		apiHandler := handler.NewApiHandler(authService, itemService)
 		apiHandler.RegisterRoutes(apiMux)
 	})
