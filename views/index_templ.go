@@ -8,6 +8,10 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import (
+	"github.com/michaelhass/cpaw/models"
+)
+
 func WithDefaultPage(component templ.Component) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -45,7 +49,7 @@ func WithDefaultPage(component templ.Component) templ.Component {
 	})
 }
 
-func Index() templ.Component {
+func IndexPage() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -66,7 +70,7 @@ func Index() templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<main class=\"container\"><nav><ul><li><h3>cpaw</h3></li></ul><ul><li><a href=\"#\" class=\"contrast\">Logout</a></li><li><a href=\"#\" class=\"contrast\">About</a></li></ul></nav><h2>TODO: show list</h2></main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<main class=\"container\"><nav><ul><li><h3>cpaw</h3></li></ul><ul><li><a href=\"/signin\" class=\"contrast\">Sign in</a></li><li><a href=\"#\" class=\"contrast\">About</a></li></ul></nav><h2>Welcome</h2></main>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -74,7 +78,7 @@ func Index() templ.Component {
 	})
 }
 
-func Login() templ.Component {
+func SignInPage() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -95,7 +99,7 @@ func Login() templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<main class=\"container\"><nav><ul><li><h3>cpaw</h3></li></ul><ul><li><a href=\"/signup\" class=\"contrast\">Sign up</a></li><li><a href=\"#\" class=\"contrast\">About</a></li></ul></nav><hgroup><h1>Welcome</h1></hgroup><form hx-post=\"/signin\" hx-target=\"body\"><fieldset><label>Username <input name=\"user_name\" placeholder=\"Username\"></label> <label>Password <input type=\"password\" name=\"password\" placeholder=\"Password\"></label></fieldset><input type=\"submit\" value=\"login\"></form></main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<main class=\"container\"><nav><ul><li><h3>cpaw</h3></li></ul><ul><li><a href=\"#\" class=\"contrast\">About</a></li></ul></nav><hgroup><h1>Sign in</h1></hgroup><form hx-post=\"/signin\"><fieldset><input name=\"user_name\" placeholder=\"Username\"> <input type=\"password\" name=\"password\" placeholder=\"Password\"></fieldset><input type=\"submit\" value=\"login\"></form></main>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -103,7 +107,7 @@ func Login() templ.Component {
 	})
 }
 
-func SignUp() templ.Component {
+func ItemsPage(items []models.Item) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -124,7 +128,67 @@ func SignUp() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<main class=\"container\"><nav><ul><li><h3>cpaw</h3></li></ul><ul><li><a href=\"/login\" class=\"contrast\">Login</a></li><li><a href=\"#\" class=\"contrast\">About</a></li></ul></nav><hgroup><h1>Welcome</h1></hgroup><form><fieldset><label>First name <input name=\"first_name\" placeholder=\"First name\" autocomplete=\"given-name\"></label> <label>Email <input type=\"email\" name=\"email\" placeholder=\"Email\" autocomplete=\"email\"></label></fieldset><input type=\"submit\" value=\"Sign up\"></form></main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<main class=\"container\"><nav><ul><li><h3>cpaw</h3></li></ul><ul><li><button hx-post=\"/signout\" class=\"contrast\">Sign out</button></li><li><a href=\"#\" class=\"contrast\">About</a></li></ul></nav><hgroup><h1>Clipboard</h1></hgroup><form hx-post=\"/items\" hx-target=\"#items_list\"><fieldset role=\"group\"><input type=\"text\" name=\"content\" placeholder=\"\"> <input type=\"submit\" value=\"Paste\"></fieldset></form>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = ItemList(items).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</main>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func ItemList(items []models.Item) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var5 == nil {
+			templ_7745c5c3_Var5 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div id=\"items_list\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for _, item := range items {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<article>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(item.Content)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/index.templ`, Line: 95, Col: 26}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</article>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

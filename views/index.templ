@@ -1,5 +1,9 @@
 package views
 
+import (
+	"github.com/michaelhass/cpaw/models"
+)
+
 templ WithDefaultPage(component templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -17,45 +21,38 @@ templ WithDefaultPage(component templ.Component) {
 	</html>
 }
 
-templ Index() {
+templ IndexPage() {
 	<main class="container">
 		<nav>
 			<ul>
 				<li><h3>cpaw</h3></li>
 			</ul>
 			<ul>
-				<li><a href="#" class="contrast">Logout</a></li>
+				<li><a href="/signin" class="contrast">Sign in</a></li>
 				<li><a href="#" class="contrast">About</a></li>
 			</ul>
 		</nav>
-		<h2>TODO: show list</h2>
+		<h2>Welcome</h2>
 	</main>
 }
 
-templ Login() {
+templ SignInPage() {
 	<main class="container">
 		<nav>
 			<ul>
 				<li><h3>cpaw</h3></li>
 			</ul>
 			<ul>
-				<li><a href="/signup" class="contrast">Sign up</a></li>
 				<li><a href="#" class="contrast">About</a></li>
 			</ul>
 		</nav>
 		<hgroup>
-			<h1>Welcome</h1>
+			<h1>Sign in</h1>
 		</hgroup>
-		<form hx-post="/signin" hx-target="body">
+		<form hx-post="/signin">
 			<fieldset>
-				<label>
-					Username
 					<input name="user_name" placeholder="Username"/>
-				</label>
-				<label>
-					Password
 					<input type="password" name="password" placeholder="Password"/>
-				</label>
 			</fieldset>
 			<input
 				type="submit"
@@ -65,35 +62,37 @@ templ Login() {
 	</main>
 }
 
-templ SignUp() {
+templ ItemsPage(items []models.Item) {
 	<main class="container">
 		<nav>
 			<ul>
 				<li><h3>cpaw</h3></li>
 			</ul>
 			<ul>
-				<li><a href="/login" class="contrast">Login</a></li>
+				<li><button hx-post="/signout" class="contrast">Sign out</button></li>
 				<li><a href="#" class="contrast">About</a></li>
 			</ul>
 		</nav>
 		<hgroup>
-			<h1>Welcome</h1>
+			<h1>Clipboard</h1>
 		</hgroup>
-		<form>
-			<fieldset>
-				<label>
-					First name
-					<input name="first_name" placeholder="First name" autocomplete="given-name"/>
-				</label>
-				<label>
-					Email
-					<input type="email" name="email" placeholder="Email" autocomplete="email"/>
-				</label>
+
+		<form hx-post="/items" hx-target="#items_list">
+			<fieldset role="group">
+				<input type="text" name="content" placeholder=""/>
+				<input type="submit" value="Paste"/>
 			</fieldset>
-			<input
-				type="submit"
-				value="Sign up"
-			/>
 		</form>
+
+		@ItemList(items)
+
 	</main>
+}
+
+templ ItemList(items []models.Item) {
+	<div id="items_list">
+		for _, item := range items {
+			<article>{ item.Content }</article>
+		}
+	</div>
 }
