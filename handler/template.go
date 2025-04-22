@@ -46,7 +46,8 @@ func (th *TemplateHandler) RegisterRoutes(mux *cmux.Mux) {
 		settings.Use(middleware.AuthProtected(th.authService, sessionCookieName))
 		settings.HandleFunc("GET /", th.handleSettingsPage)
 		settings.HandleFunc("PUT /auth/password/", th.handleUpdateUserPassword)
-		settings.HandleFunc("POST /auth/user/", th.handleCreateUser)
+		settings.HandleFunc("GET /auth/users/", th.handleGetUsers)
+		settings.HandleFunc("POST /auth/users/", th.handleCreateUser)
 	})
 }
 
@@ -205,7 +206,7 @@ func (th *TemplateHandler) handleCreateUser(w http.ResponseWriter, r *http.Reque
 	password := r.FormValue("password")
 	role := models.Role(r.FormValue("role"))
 
-	_, err := th.authService.CreateUser(r.Context(), service.CreateUserParams{
+	user, err := th.authService.CreateUser(r.Context(), service.CreateUserParams{
 		UserName: username,
 		Password: password,
 		Role:     role,
@@ -217,5 +218,17 @@ func (th *TemplateHandler) handleCreateUser(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.WriteHeader(http.StatusAccepted)
-	// render user
+	userRow := views.SettingsUserRow(user)
+	userRow.Render(r.Context(), w)
+}
+
+func (th *TemplateHandler) handleGetUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := th.authService.ListUsers(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	rows := views.SettingsUserRows(users)
+	rows.Render(r.Context(), w)
 }

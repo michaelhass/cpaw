@@ -151,6 +151,10 @@ func (as *AuthService) CreateUser(ctx context.Context, params CreateUserParams) 
 	return as.users.CreateUser(ctx, params)
 }
 
+func (as *AuthService) ListUsers(ctx context.Context) ([]models.User, error) {
+	return as.users.ListUsers(ctx)
+}
+
 func generateSessionToken(length int) (string, error) {
 	randomValues := make([]byte, length)
 	if _, err := rand.Read(randomValues); err != nil {

@@ -26,6 +26,7 @@ templ settingsPage(pageData SettingsPageData) {
 		<br><br>
 
 		<h2>Settings</h2>
+		<br>
 		<section hx-ext="response-targets">
 		<h3>Change Credentials</h3>
 			<form novalidate>
@@ -53,6 +54,59 @@ templ settingsPage(pageData SettingsPageData) {
 				<small id="change_pw_response"></small>
 				</label>
 			</form>
+			<br>
+			</section>
+
+			<section>
+				<h3>Users</h3>
+					@settingsUserTable([]models.User{})
+				<br>
 			</section>
 	</main>
+}
+
+templ settingsUserTable(users []models.User) {
+	<table hx-get="/settings/auth/users" hx-trigger="load" hx-swap="innerHTML" hx-target="#user_settings_rows">
+		<thead>
+			<tr>
+				<form
+					hx-post="/settings/auth/users"
+					hx-swap="afterbegin"
+					hx-target="#user_settings_rows"
+					novalidate
+				>
+					<td><input type="text" placeholder="Username" name="username"/></td>
+					<td>@RowSelectionDropDown()</td>
+					<td><input type="password" placeholder="Password" name="password"/></td>
+					<td><input type="submit" value="Add"/></td>
+				</form>
+			</tr>
+		</thead>
+		<tbody id="user_settings_rows">
+			@SettingsUserRows(users)
+		</tbody>
+	</table>
+}
+
+templ SettingsUserRows(users []models.User) {
+	for _, user := range users {
+		@SettingsUserRow(user)
+	}
+}
+
+templ SettingsUserRow(user models.User) {
+	<tr>
+		<td>{ user.UserName }</td>
+		<td>{ string(user.Role) }</td>
+		<td></td>
+		<td><button class="secondary">Delete</button></td>
+	</tr>
+}
+
+templ RowSelectionDropDown() {
+	<select name="role" aria-label="Role">
+		for _, role := range models.AllRoles() {
+			<option>{ string(role) }</option>
+		}
+	</select>
 }
