@@ -57,11 +57,13 @@ templ settingsPage(pageData SettingsPageData) {
 			<br>
 			</section>
 
-			<section>
-				<h3>Users</h3>
-					@settingsUserTable([]models.User{})
-				<br>
-			</section>
+			if pageData.User.Role == models.AdminRole {
+				<section>
+					<h3>Users</h3>
+						@settingsUserTable([]models.User{})
+					<br>
+				</section>
+			}
 	</main>
 }
 
