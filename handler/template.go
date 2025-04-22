@@ -37,16 +37,17 @@ func (th *TemplateHandler) RegisterRoutes(mux *cmux.Mux) {
 	mux.HandleFunc("POST /signin/", th.handleSignIn(indexRedirectPath))
 	mux.HandleFunc("POST /signout/", th.handleSignOut(indexRedirectPath))
 
-	mux.Handle("GET /items/", authProtectedRedirect(http.HandlerFunc(th.handleGetItems)))
 	mux.Group("/items", func(items *cmux.Mux) {
-		items.Use(middleware.AuthProtected(th.authService, sessionCookieName))
+		items.Use(authProtectedRedirect)
+		items.HandleFunc("GET /", th.handleGetItems)
 		items.HandleFunc("POST /", th.handleCreateItem)
 		items.HandleFunc("DELETE /{itemId}/", th.handleDeleteItem)
 	})
 
-	mux.Handle("GET /settings/", authProtectedRedirect(http.HandlerFunc(th.handleSettingsPage)))
+	// mux.Handle("GET /settings/", authProtectedRedirect(http.HandlerFunc(th.handleSettingsPage)))
 	mux.Group("/settings", func(settings *cmux.Mux) {
-		settings.Use(middleware.AuthProtected(th.authService, sessionCookieName))
+		settings.Use(authProtectedRedirect)
+		settings.HandleFunc("GET /", th.handleSettingsPage)
 		settings.HandleFunc("PUT /auth/password/", th.handleUpdateUserPassword)
 		settings.HandleFunc("GET /auth/users/", th.handleGetUsers)
 		settings.HandleFunc("POST /auth/users/", th.handleCreateUser)
