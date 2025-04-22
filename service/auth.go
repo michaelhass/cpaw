@@ -145,6 +145,12 @@ func (as *AuthService) UpdatePassword(ctx context.Context, params UpdatePassword
 	return as.users.UpdatePassword(ctx, params)
 }
 
+type CreateUserParams = repository.CreateUserParams
+
+func (as *AuthService) CreateUser(ctx context.Context, params CreateUserParams) (models.User, error) {
+	return as.users.CreateUser(ctx, params)
+}
+
 func generateSessionToken(length int) (string, error) {
 	randomValues := make([]byte, length)
 	if _, err := rand.Read(randomValues); err != nil {

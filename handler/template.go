@@ -7,6 +7,7 @@ import (
 
 	"github.com/michaelhass/cpaw/ctx"
 	"github.com/michaelhass/cpaw/middleware"
+	"github.com/michaelhass/cpaw/models"
 	cmux "github.com/michaelhass/cpaw/mux"
 	"github.com/michaelhass/cpaw/service"
 	"github.com/michaelhass/cpaw/views"
@@ -45,6 +46,7 @@ func (th *TemplateHandler) RegisterRoutes(mux *cmux.Mux) {
 		settings.Use(middleware.AuthProtected(th.authService, sessionCookieName))
 		settings.HandleFunc("GET /", th.handleSettingsPage)
 		settings.HandleFunc("PUT /auth/password/", th.handleUpdateUserPassword)
+		settings.HandleFunc("POST /auth/user/", th.handleCreateUser)
 	})
 }
 
@@ -190,4 +192,30 @@ func (th *TemplateHandler) handleUpdateUserPassword(w http.ResponseWriter, r *ht
 
 	w.WriteHeader(http.StatusAccepted)
 	w.Write([]byte("Password updated"))
+}
+
+func (th *TemplateHandler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
+	userId, ok := ctx.GetUserId(r.Context())
+	if !ok || len(userId) == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	role := models.Role(r.FormValue("role"))
+
+	_, err := th.authService.CreateUser(r.Context(), service.CreateUserParams{
+		UserName: username,
+		Password: password,
+		Role:     role,
+	})
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+	// render user
 }
