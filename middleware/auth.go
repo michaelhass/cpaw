@@ -38,6 +38,40 @@ func AuthProtected(authService *service.AuthService, cookieName string) mux.Midd
 	}
 }
 
+func AuthProtectedRedirect(
+	authService *service.AuthService,
+	cookieName string,
+	redirectTo string,
+) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			c, err := r.Cookie(cookieName)
+			if err == http.ErrNoCookie {
+				http.Redirect(w, r, redirectTo, http.StatusSeeOther)
+				return
+			} else if err != nil {
+				http.Redirect(w, r, redirectTo, http.StatusSeeOther)
+				return
+			}
+
+			err = c.Valid()
+			if err != nil {
+				http.Redirect(w, r, redirectTo, http.StatusSeeOther)
+				return
+			}
+
+			session, err := authService.VerifyToken(r.Context(), c.Value)
+			if err != nil {
+				http.Redirect(w, r, redirectTo, http.StatusSeeOther)
+				return
+			}
+
+			ctx := ctx.WithUserId(r.Context(), session.UserId)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
 func AuthenticatedUser(authService *service.AuthService, cookieName string) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
