@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -43,6 +44,7 @@ func (th *TemplateHandler) RegisterRoutes(mux *cmux.Mux) {
 	mux.Group("/settings", func(settings *cmux.Mux) {
 		settings.Use(middleware.AuthProtected(th.authService, sessionCookieName))
 		settings.HandleFunc("GET /", th.handleSettingsPage)
+		settings.HandleFunc("PUT /auth/password/", th.handleUpdateUserPassword)
 	})
 }
 
@@ -162,4 +164,30 @@ func (th *TemplateHandler) handleSettingsPage(w http.ResponseWriter, r *http.Req
 	}
 	settingsPage := views.SettingsPage(viewData)
 	settingsPage.Render(context, w)
+}
+
+func (th *TemplateHandler) handleUpdateUserPassword(w http.ResponseWriter, r *http.Request) {
+	userId, ok := ctx.GetUserId(r.Context())
+	if !ok || len(userId) == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	password := r.FormValue("password")
+	err := th.authService.UpdatePassword(r.Context(), service.UpdatePasswordParams{
+		UserId:   userId,
+		Password: password,
+	})
+
+	if errors.Is(err, service.ErrMinPasswordLength) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	} else if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+	w.Write([]byte("Password updated"))
 }

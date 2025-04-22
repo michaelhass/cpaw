@@ -26,7 +26,33 @@ templ settingsPage(pageData SettingsPageData) {
 		<br><br>
 
 		<h2>Settings</h2>
-
+		<section hx-ext="response-targets">
+		<h3>Change Credentials</h3>
+			<form novalidate>
+				<label>
+				Username
+				<fieldset role="group">
+					<input type="text" placeholder={ pageData.User.UserName} name="user_name"/>
+					<input type="submit">
+				</fieldset>
+				</label>
+			</form>
+			<form
+				hx-put="/settings/auth/password"
+			 	hx-swap="innerHTML"
+				hx-target="#change_pw_response"
+				hx-target-4xx="#change_pw_response"
+				novalidate
+			>
+				<label>
+				Password
+				<fieldset role="group">
+					<input type="password" placeholder="****" name="password"/>
+					<input type="submit">
+				</fieldset>
+				<small id="change_pw_response"></small>
+				</label>
+			</form>
+			</section>
 	</main>
-
 }
