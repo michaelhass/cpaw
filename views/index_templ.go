@@ -33,7 +33,7 @@ func withDefaultPage(component templ.Component) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><meta name=\"color-scheme\" content=\"light dark\"><link rel=\"stylesheet\" href=\"/static/css/pico.indigo.min.css\"><link rel=\"stylesheet\" href=\"/static/css/cpaw.css\"><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/response-targets.js\"></script><title>cpaw</title></head><body>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><meta name=\"color-scheme\" content=\"light dark\"><link rel=\"stylesheet\" href=\"/static/css/pico.indigo.min.css\"><link rel=\"stylesheet\" href=\"/static/css/cpaw.css\"><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/response-targets.js\"></script><title>cpaw</title></head><body id=\"main_body\" hx-ext=\"response-targets\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -181,7 +181,7 @@ func SignInForm() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<form hx-post=\"/signin\" novalidate hx-target=\"body\"><fieldset><input type=\"text\" name=\"user_name\" placeholder=\"Username\" aria-label=\"Text\"> <input type=\"password\" name=\"password\" placeholder=\"Password\" aria-label=\"Password\"></fieldset><input type=\"submit\" value=\"login\"></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<form hx-post=\"/signin\" hx-swap=\"innerHTML\" hx-target=\"#main_body\" hx-target-error=\"#signin_error_response\" novalidate><fieldset class=\"group\"><input type=\"text\" name=\"username\" placeholder=\"Username\"> <input type=\"password\" name=\"password\" placeholder=\"Password\"> <input type=\"submit\" value=\"login\"> <small id=\"signin_error_response\"></small></fieldset></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

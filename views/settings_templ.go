@@ -66,7 +66,7 @@ func settingsPage(pageData SettingsPageData) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<main class=\"container\"><nav><ul><li><h3>cpaw</h3></li></ul><ul><li><a href=\"/\" class=\"contrast\">Home</a></li><li><button class=\"secondary outline\" hx-post=\"/signout\" hx-target=\"body\">Signout</button></li></ul></nav><br><br><h2>Settings</h2><br><section hx-ext=\"response-targets\"><h3>Change Credentials</h3><form novalidate><label>Username<fieldset role=\"group\"><input type=\"text\" placeholder=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<main class=\"container\"><nav><ul><li><h3>cpaw</h3></li></ul><ul><li><a href=\"/\" class=\"contrast\">Home</a></li><li><button class=\"secondary outline\" hx-post=\"/signout\" hx-target=\"body\">Signout</button></li></ul></nav><br><br><h2>Settings</h2><br><section><h3>Change Credentials</h3><form novalidate><label>Username<fieldset role=\"group\"><input type=\"text\" placeholder=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

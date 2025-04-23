@@ -17,7 +17,7 @@ templ withDefaultPage(component templ.Component) {
 			<script src="/static/js/response-targets.js"></script>
 			<title>cpaw</title>
 		</head>
-		<body>
+		<body id="main_body" hx-ext="response-targets">
 			@component
 		</body>
 	</html>
@@ -63,14 +63,18 @@ templ indexPage(pageData IndexPageData) {
 }
 
 templ SignInForm() {
-	<form hx-post="/signin" novalidate hx-target="body">
-		<fieldset>
-			<input type="text" name="user_name" placeholder="Username" aria-label="Text"/>
-			<input type="password" name="password" placeholder="Password" aria-label="Password"/>
+	<form
+		hx-post="/signin"
+		hx-swap="innerHTML"
+	 	hx-target="#main_body"
+		hx-target-error="#signin_error_response"
+		novalidate
+	>
+		<fieldset class="group">
+			<input type="text" name="username" placeholder="Username"/>
+			<input type="password" name="password" placeholder="Password"/>
+			<input type="submit" value="login" />
+			<small id="signin_error_response"></small>
 		</fieldset>
-			<input
-				type="submit"
-				value="login"
-			/>
 	</form>
 }

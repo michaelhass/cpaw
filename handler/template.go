@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -66,14 +67,14 @@ func (th *TemplateHandler) handleIndexPage(w http.ResponseWriter, r *http.Reques
 func (th *TemplateHandler) handleSignIn(onSuccesRedirect string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
-			user     = r.FormValue("user_name")
+			user     = r.FormValue("username")
 			password = r.FormValue("password")
 		)
 
 		authResult, err := th.authService.SignIn(r.Context(), user, password)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(err.Error()))
+			w.Write([]byte(fmt.Sprintf("Invalid credentials")))
 			return
 		}
 		cookie := &http.Cookie{}
