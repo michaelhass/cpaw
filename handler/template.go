@@ -31,7 +31,7 @@ func NewTemplateHandler(
 func (th *TemplateHandler) RegisterRoutes(mux *cmux.Mux) {
 	indexRedirectPath := "/"
 	authProtectedRedirect := middleware.AuthProtectedRedirect(th.authService, sessionCookieName, indexRedirectPath)
-	mux.Use(middleware.AuthenticatedUser(th.authService, sessionCookieName))
+	mux.Use(middleware.SetAuthenticatedUserCtx(th.authService, sessionCookieName))
 	mux.HandleFunc("/", th.handleIndexPage)
 
 	mux.HandleFunc("POST /signin/", th.handleSignIn(indexRedirectPath))
@@ -44,7 +44,6 @@ func (th *TemplateHandler) RegisterRoutes(mux *cmux.Mux) {
 		items.HandleFunc("DELETE /{itemId}/", th.handleDeleteItem)
 	})
 
-	// mux.Handle("GET /settings/", authProtectedRedirect(http.HandlerFunc(th.handleSettingsPage)))
 	mux.Group("/settings", func(settings *cmux.Mux) {
 		settings.Use(authProtectedRedirect)
 		settings.HandleFunc("GET /", th.handleSettingsPage)
