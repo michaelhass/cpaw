@@ -27,7 +27,7 @@ templ Item(item models.Item) {
 			<div>{ item.Content }</div>
 			<button
 				class="secondary"
-				hx-delete={ "items/" + item.Id }
+				hx-delete={ "/items/" + item.Id }
 				hx-swap="delete"
 				hx-target={"#list_item_" + item.Id }
 			>

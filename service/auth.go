@@ -121,10 +121,6 @@ func (as *AuthService) SignOut(ctx context.Context, sessionToken string) error {
 	return as.sessions.DeleteSessionWithToken(ctx, sessionToken)
 }
 
-func (as *AuthService) GetUserById(ctx context.Context, userId string) (models.User, error) {
-	return as.users.GetUserById(ctx, userId)
-}
-
 func (as *AuthService) VerifyToken(ctx context.Context, sessionToken string) (models.Session, error) {
 	session, err := as.sessions.GetSessionByToken(ctx, sessionToken)
 	if err != nil {
@@ -153,6 +149,14 @@ func (as *AuthService) CreateUser(ctx context.Context, params CreateUserParams) 
 
 func (as *AuthService) ListUsers(ctx context.Context) ([]models.User, error) {
 	return as.users.ListUsers(ctx)
+}
+
+func (as *AuthService) GetUserById(ctx context.Context, userId string) (models.User, error) {
+	return as.users.GetUserById(ctx, userId)
+}
+
+func (as *AuthService) DeleteUserById(ctx context.Context, userId string) error {
+	return as.users.DeleteUserById(ctx, userId)
 }
 
 func generateSessionToken(length int) (string, error) {

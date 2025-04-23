@@ -34,7 +34,7 @@ templ settingsPage(pageData SettingsPageData) {
 				Username
 				<fieldset role="group">
 					<input type="text" placeholder={ pageData.User.UserName} name="user_name"/>
-					<input type="submit">
+					<input type="submit" value="Save">
 				</fieldset>
 				</label>
 			</form>
@@ -49,23 +49,24 @@ templ settingsPage(pageData SettingsPageData) {
 				Password
 				<fieldset role="group">
 					<input type="password" placeholder="****" name="password"/>
-					<input type="submit">
+					<input type="submit" value="Save">
 				</fieldset>
 				<small id="change_pw_response"></small>
 				</label>
 			</form>
 			<br>
 			</section>
-
-			<section>
-				<h3>Users</h3>
-					@settingsUserTable([]models.User{})
-				<br>
-			</section>
+			if pageData.User.Role == models.AdminRole {
+				<section>
+					<h3>Users</h3>
+					@settingsUserTable([]SettingsUserRowData{})
+					<br>
+				</section>
+			}
 	</main>
 }
 
-templ settingsUserTable(users []models.User) {
+templ settingsUserTable(users []SettingsUserRowData) {
 	<table hx-get="/settings/auth/users" hx-trigger="load" hx-target="#user_settings_rows">
 		<thead>
 			<tr>
@@ -88,18 +89,35 @@ templ settingsUserTable(users []models.User) {
 	</table>
 }
 
-templ SettingsUserRows(users []models.User) {
+type SettingsUserRowData struct {
+	User models.User
+	IsDeletable bool
+}
+
+templ SettingsUserRows(users []SettingsUserRowData) {
 	for _, user := range users {
 		@SettingsUserRow(user)
 	}
 }
 
-templ SettingsUserRow(user models.User) {
-	<tr>
-		<td>{ user.UserName }</td>
-		<td>{ string(user.Role) }</td>
+templ SettingsUserRow(data SettingsUserRowData) {
+    <tr id={ "user_settings_row_" + data.User.Id } >
+		<td>{ data.User.UserName }</td>
+		<td>{ string(data.User.Role) }</td>
 		<td></td>
-		<td><button class="secondary">Delete</button></td>
+		<td>
+			<button
+				class="secondary"
+				hx-delete={ "/settings/auth/users/" + data.User.Id }
+				hx-swap="delete"
+				hx-target={ "#user_settings_row_" + data.User.Id }
+				if !data.IsDeletable {
+					disabled
+				}
+			>
+				Delete
+			</button>
+		</td>
 	</tr>
 }
 

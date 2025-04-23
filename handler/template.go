@@ -51,6 +51,7 @@ func (th *TemplateHandler) RegisterRoutes(mux *cmux.Mux) {
 		settings.HandleFunc("PUT /auth/password/", th.handleUpdateUserPassword)
 		settings.HandleFunc("GET /auth/users/", th.handleGetUsers)
 		settings.HandleFunc("POST /auth/users/", th.handleCreateUser)
+		settings.HandleFunc("DELETE /auth/users/{userId}/", th.handleDeleteUserById)
 	})
 }
 
@@ -199,8 +200,8 @@ func (th *TemplateHandler) handleUpdateUserPassword(w http.ResponseWriter, r *ht
 }
 
 func (th *TemplateHandler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
-	userId, ok := ctx.GetUserId(r.Context())
-	if !ok || len(userId) == 0 {
+	currentUserId, ok := ctx.GetUserId(r.Context())
+	if !ok || len(currentUserId) == 0 {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -221,8 +222,17 @@ func (th *TemplateHandler) handleCreateUser(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.WriteHeader(http.StatusAccepted)
-	userRow := views.SettingsUserRow(user)
+	userRow := views.SettingsUserRow(newSettingsUserRowData(user, currentUserId))
 	userRow.Render(r.Context(), w)
+}
+
+func (th *TemplateHandler) handleDeleteUserById(w http.ResponseWriter, r *http.Request) {
+	err := th.authService.DeleteUserById(r.Context(), r.PathValue("userId"))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func (th *TemplateHandler) handleGetUsers(w http.ResponseWriter, r *http.Request) {
@@ -232,6 +242,19 @@ func (th *TemplateHandler) handleGetUsers(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	rows := views.SettingsUserRows(users)
+	currentUserId, _ := ctx.GetUserId(r.Context())
+
+	var viewData []views.SettingsUserRowData
+	for _, user := range users {
+		viewData = append(viewData, newSettingsUserRowData(user, currentUserId))
+	}
+	rows := views.SettingsUserRows(viewData)
 	rows.Render(r.Context(), w)
+}
+
+func newSettingsUserRowData(user models.User, currentUserId string) views.SettingsUserRowData {
+	return views.SettingsUserRowData{
+		User:        user,
+		IsDeletable: currentUserId != user.Id,
+	}
 }
