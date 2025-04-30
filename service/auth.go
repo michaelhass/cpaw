@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/michaelhass/cpaw/db/repository"
@@ -165,13 +165,13 @@ func (as *AuthService) RunPeriodicCleanUpTask(parentContext context.Context) con
 	ticker := time.NewTicker(DefaultCleanUpInterval)
 	ctx, cancel := context.WithCancel(parentContext)
 
-	fmt.Println("Starting AuthService clean up task")
+	log.Println("Starting AuthService clean up task")
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
 				if err := as.sessions.DeleteExpired(ctx); err != nil {
-					fmt.Println("Error deleting expired sessions", err)
+					log.Println("Error deleting expired sessions", err)
 				}
 			case <-ctx.Done():
 				ticker.Stop()
