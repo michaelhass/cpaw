@@ -75,3 +75,11 @@ func (sr *SessionRepository) DeleteAll(ctx context.Context) error {
 	_, err := sr.db.ExecContext(ctx, deleteAllSessionsQuery)
 	return err
 }
+
+const deleteExpiredQuery = "DELETE FROM sessions WHERE expires_at <= $1 "
+
+func (sr *SessionRepository) DeleteExpired(ctx context.Context) error {
+	currentTime := time.Now().Unix()
+	_, err := sr.db.ExecContext(ctx, deleteExpiredQuery, currentTime)
+	return err
+}

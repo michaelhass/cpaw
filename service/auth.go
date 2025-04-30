@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/michaelhass/cpaw/db/repository"
@@ -13,9 +14,10 @@ import (
 )
 
 const (
-	DefaultSessionDuration    time.Duration = time.Minute * 30
+	DefaultSessionDuration    time.Duration = time.Minute * 15
 	DefaultSessionTokenLength int           = 32
 	DefaultMinPasswordLength  int           = 6
+	DefaultCleanUpInterval    time.Duration = time.Minute * 1
 )
 
 var (
@@ -157,6 +159,24 @@ func (as *AuthService) GetUserById(ctx context.Context, userId string) (models.U
 
 func (as *AuthService) DeleteUserById(ctx context.Context, userId string) error {
 	return as.users.DeleteUserById(ctx, userId)
+}
+
+func (as *AuthService) RunPeriodicCleanUpTask(cancelChan chan bool) {
+	ticker := time.NewTicker(DefaultCleanUpInterval)
+
+	fmt.Println("Starting AuthService clean up task")
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				if err := as.sessions.DeleteExpired(context.Background()); err != nil {
+					fmt.Println("Error deleting expired sessions", err)
+				}
+			case <-cancelChan:
+				ticker.Stop()
+			}
+		}
+	}()
 }
 
 func generateSessionToken(length int) (string, error) {

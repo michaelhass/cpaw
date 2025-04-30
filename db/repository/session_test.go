@@ -46,6 +46,7 @@ func TestSessionRepository(t *testing.T) {
 	t.Run("CreateSession", sessionRepoTestFunc(testCreateSession(sessionRepo)))
 	t.Run("GetSessionByToken", sessionRepoTestFunc(testGetSessionByToken(sessionRepo)))
 	t.Run("DeleteSession", sessionRepoTestFunc(testDeleteSession(sessionRepo)))
+	t.Run("DeleteExpiredSessions", sessionRepoTestFunc(testDeleteExpiredSessions(sessionRepo)))
 }
 
 func testCreateSession(repo *SessionRepository) func(*testing.T, models.User) {
@@ -159,6 +160,54 @@ func testDeleteSession(repo *SessionRepository) func(*testing.T, models.User) {
 		_, err = repo.GetSessionByToken(ctx, paramsTwo.Token)
 		if errors.Is(err, ErrNotFound) {
 			t.Error("Session should not have been deleted")
+		}
+	}
+}
+
+func testDeleteExpiredSessions(repo *SessionRepository) func(*testing.T, models.User) {
+	return func(t *testing.T, testUser models.User) {
+		ctx := context.Background()
+
+		paramsOne := CreateSessionParams{
+			Token:     "token1",
+			ExpiresAt: time.Now().Add(time.Minute * -1),
+			UserId:    testUser.Id,
+		}
+
+		paramsTwo := CreateSessionParams{
+			Token:     "token2",
+			ExpiresAt: time.Now().Add(time.Minute * 15),
+			UserId:    testUser.Id,
+		}
+
+		paramsThree := CreateSessionParams{
+			Token:     "token3",
+			ExpiresAt: time.Now().Add(time.Second * -10),
+			UserId:    testUser.Id,
+		}
+
+		_, _ = repo.CreateSession(ctx, paramsOne)
+		_, _ = repo.CreateSession(ctx, paramsTwo)
+		_, _ = repo.CreateSession(ctx, paramsThree)
+
+		err := repo.DeleteExpired(ctx)
+		if err != nil {
+			t.Error(err)
+		}
+
+		_, err = repo.GetSessionByToken(ctx, paramsOne.Token)
+		if !errors.Is(err, ErrNotFound) {
+			t.Error("Session not deleted", err)
+		}
+
+		_, err = repo.GetSessionByToken(ctx, paramsTwo.Token)
+		if errors.Is(err, ErrNotFound) {
+			t.Error("Session should not have been deleted")
+		}
+
+		_, err = repo.GetSessionByToken(ctx, paramsThree.Token)
+		if !errors.Is(err, ErrNotFound) {
+			t.Error("Session not deleted", err)
 		}
 	}
 }
