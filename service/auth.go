@@ -161,22 +161,25 @@ func (as *AuthService) DeleteUserById(ctx context.Context, userId string) error 
 	return as.users.DeleteUserById(ctx, userId)
 }
 
-func (as *AuthService) RunPeriodicCleanUpTask(cancelChan chan bool) {
+func (as *AuthService) RunPeriodicCleanUpTask(parentContext context.Context) context.CancelFunc {
 	ticker := time.NewTicker(DefaultCleanUpInterval)
+	ctx, cancel := context.WithCancel(parentContext)
 
 	fmt.Println("Starting AuthService clean up task")
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				if err := as.sessions.DeleteExpired(context.Background()); err != nil {
+				if err := as.sessions.DeleteExpired(ctx); err != nil {
 					fmt.Println("Error deleting expired sessions", err)
 				}
-			case <-cancelChan:
+			case <-ctx.Done():
 				ticker.Stop()
+				return
 			}
 		}
 	}()
+	return cancel
 }
 
 func generateSessionToken(length int) (string, error) {

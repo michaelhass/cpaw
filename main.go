@@ -45,10 +45,9 @@ func main() {
 	authService := service.NewAuthService(sessionRespository, userRepository)
 	itemService := service.NewItemService(itemRepository)
 
-	cancelAuthTaskChan := make(chan bool)
-	authService.RunPeriodicCleanUpTask(cancelAuthTaskChan)
+	cancelAuthCleanUp := authService.RunPeriodicCleanUpTask(context.Background())
 	defer func() {
-		cancelAuthTaskChan <- true
+		cancelAuthCleanUp()
 	}()
 
 	initialCredentials, err := authService.SetUp(context.Background())
