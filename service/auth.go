@@ -22,7 +22,7 @@ const (
 
 var (
 	ErrExpiredSession    = errors.New("Expired Session")
-	ErrMinPasswordLength = errors.New("Password should be min. 6 charachters long")
+	ErrMinPasswordLength = errors.New("Password should be min. 6 characters long")
 )
 
 type AuthService struct {
