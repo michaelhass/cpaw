@@ -40,6 +40,7 @@ func TestUserRepository(t *testing.T) {
 	t.Run("GetUserByName", userRepoTestFunc(testGetUserByName(repo)))
 	t.Run("ListUsers", userRepoTestFunc(testListUsers(repo)))
 	t.Run("UpdatePassword", userRepoTestFunc(testUpdatePassword(repo)))
+	t.Run("UpdateName", userRepoTestFunc(testUpdateUserName(repo)))
 }
 
 func createTestUsers(ctx context.Context, repo *UserRepository, count int) ([]models.User, error) {
@@ -124,7 +125,6 @@ func testGetUserByName(repo *UserRepository) func(*testing.T) {
 		}
 		expectUsers, err := createTestUsers(ctx, repo, 5)
 		if err != nil {
-			t.Error(err)
 			return
 		}
 
@@ -132,9 +132,11 @@ func testGetUserByName(repo *UserRepository) func(*testing.T) {
 			gotUser, err := repo.GetUserByName(ctx, expectUser.UserName)
 			if err != nil {
 				t.Error(err)
+				return
 			}
 			if !reflect.DeepEqual(expectUser, gotUser) {
 				t.Errorf("Users did not match. Expected: %v. Got: %v", expectUser, gotUser)
+				return
 			}
 		}
 	}
@@ -167,6 +169,7 @@ func testUpdatePassword(repo *UserRepository) func(*testing.T) {
 		})
 		if err != nil {
 			t.Error(err)
+			return
 		}
 
 		updatedPw := "updated_pw"
@@ -176,12 +179,59 @@ func testUpdatePassword(repo *UserRepository) func(*testing.T) {
 		})
 		if err != nil {
 			t.Error(err)
+			return
 		}
 
 		updatedUser, err := repo.GetUserById(ctx, initialUser.Id)
 		if initialUser.PasswordHash == updatedUser.PasswordHash &&
 			!hash.VerifyPassword(updatedPw, updatedUser.PasswordHash) {
 			t.Error("Unable to to update password:", updatedUser)
+		}
+	}
+}
+
+func testUpdateUserName(repo *UserRepository) func(*testing.T) {
+	return func(t *testing.T) {
+		ctx := context.Background()
+
+		users, err := createTestUsers(ctx, repo, 2)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		updateUser := users[0]
+		otherUser := users[1]
+
+		err = repo.UpdateUserName(ctx, UpdateUserNameParams{
+			UserName: otherUser.UserName,
+			UserId:   updateUser.Id,
+		})
+
+		if err == nil {
+			t.Error("Expected error because with non unique user name")
+			return
+		}
+
+		newUserName := "NEW_NAME"
+		err = repo.UpdateUserName(ctx, UpdateUserNameParams{
+			UserName: newUserName,
+			UserId:   updateUser.Id,
+		})
+
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		updatedUser, err := repo.GetUserById(ctx, updateUser.Id)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		if updatedUser.UserName != newUserName {
+			t.Error("Did not update user name")
 		}
 	}
 }

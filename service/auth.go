@@ -137,10 +137,20 @@ func (as *AuthService) VerifyToken(ctx context.Context, sessionToken string) (mo
 type UpdatePasswordParams = repository.UpdateUserPasswordParams
 
 func (as *AuthService) UpdatePassword(ctx context.Context, params UpdatePasswordParams) error {
-	if len(params.Password) < DefaultMinPasswordLength {
+	if !as.IsValidPassword(params.Password) {
 		return ErrMinPasswordLength
 	}
 	return as.users.UpdatePassword(ctx, params)
+}
+
+func (as *AuthService) IsValidPassword(password string) bool {
+	return len(password) >= DefaultMinPasswordLength
+}
+
+type UpdateUserNameParams = repository.UpdateUserNameParams
+
+func (as *AuthService) UpdateUserName(ctx context.Context, params UpdateUserNameParams) error {
+	return as.users.UpdateUserName(ctx, params)
 }
 
 type CreateUserParams = repository.CreateUserParams

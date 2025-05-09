@@ -139,11 +139,7 @@ type UpdateUserPasswordParams struct {
 	Password string
 }
 
-const updatePasswordQuery = `
-UPDATE users
-SET password_hash = $1
-WHERE id = $2
-`
+const updatePasswordQuery = "UPDATE users SET password_hash = $1 WHERE id = $2;"
 
 func (ur *UserRepository) UpdatePassword(ctx context.Context, args UpdateUserPasswordParams) error {
 	passwordHash, err := hash.NewFromPassword(args.Password)
@@ -151,6 +147,18 @@ func (ur *UserRepository) UpdatePassword(ctx context.Context, args UpdateUserPas
 		return err
 	}
 	_, err = ur.db.ExecContext(ctx, updatePasswordQuery, passwordHash, args.UserId)
+	return err
+}
+
+type UpdateUserNameParams struct {
+	UserId   string
+	UserName string
+}
+
+const updateUserNameQuery = "UPDATE users SET user_name = $1 where id = $2;"
+
+func (ur *UserRepository) UpdateUserName(ctx context.Context, args UpdateUserNameParams) error {
+	_, err := ur.db.ExecContext(ctx, updateUserNameQuery, args.UserName, args.UserId)
 	return err
 }
 
