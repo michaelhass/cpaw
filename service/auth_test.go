@@ -13,6 +13,7 @@ func TestIsValidUserName(t *testing.T) {
 		{"empty", "", false},
 		{"one character", "a", false},
 		{"two characters", "ab", true},
+		{"numeric", "1234", true},
 		{"alphanumeric", "user123", true},
 		{"underscore", "user_name", true},
 		{"hyphen", "user-name", true},

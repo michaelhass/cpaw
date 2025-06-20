@@ -25,6 +25,7 @@ var (
 	ErrExpiredSession       = errors.New("Expired Session")
 	ErrMinPasswordLength    = errors.New("Password should be min. 6 characters long")
 	ErrUserNameInvalidChars = errors.New("Invalid user name. Min length 2. Please only use letters, numbers, '-' or '_'.")
+	ErrInvalidCredentials   = errors.New("Invalid credentials")
 
 	userNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 )
@@ -39,12 +40,6 @@ func NewAuthService(
 	users *repository.UserRepository,
 ) *AuthService {
 	return &AuthService{sessions: sessions, users: users}
-}
-
-type InvalidCredentialsError struct{}
-
-func (e *InvalidCredentialsError) Error() string {
-	return "Invalid credentials"
 }
 
 func (as *AuthService) SetUp(
@@ -80,12 +75,12 @@ func (as *AuthService) SignIn(ctx context.Context, userName string, password str
 
 	user, err := as.users.GetUserByName(ctx, userName)
 	if err != nil {
-		return result, &InvalidCredentialsError{}
+		return result, ErrInvalidCredentials
 	}
 
 	isMatch := hash.VerifyPassword(password, user.PasswordHash)
 	if !isMatch {
-		return result, &InvalidCredentialsError{}
+		return result, ErrInvalidCredentials
 	}
 
 	token, err := generateSessionToken(DefaultSessionTokenLength)
