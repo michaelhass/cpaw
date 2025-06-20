@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/michaelhass/cpaw/db/repository"
@@ -21,8 +22,11 @@ const (
 )
 
 var (
-	ErrExpiredSession    = errors.New("Expired Session")
-	ErrMinPasswordLength = errors.New("Password should be min. 6 characters long")
+	ErrExpiredSession       = errors.New("Expired Session")
+	ErrMinPasswordLength    = errors.New("Password should be min. 6 characters long")
+	ErrUserNameInvalidChars = errors.New("Invalid user name. Min length 2. Please only use letters, numbers, '-' or '_'.")
+
+	userNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 )
 
 type AuthService struct {
@@ -55,8 +59,8 @@ func (as *AuthService) SetUp(
 		return models.User{}, nil
 	}
 	params := createInitialUser()
-	if len(params.UserName) == 0 {
-		return models.User{}, errors.New("Empty user name")
+	if !IsValidUserName(params.UserName) {
+		return models.User{}, ErrUserNameInvalidChars
 	}
 	if len(params.Password) < DefaultMinPasswordLength {
 		return models.User{}, ErrMinPasswordLength
@@ -136,12 +140,18 @@ func (as *AuthService) IsValidPassword(password string) bool {
 type UpdateUserNameParams = repository.UpdateUserNameParams
 
 func (as *AuthService) UpdateUserName(ctx context.Context, params UpdateUserNameParams) error {
+	if !IsValidUserName(params.UserName) {
+		return ErrUserNameInvalidChars
+	}
 	return as.users.UpdateUserName(ctx, params)
 }
 
 type CreateUserParams = repository.CreateUserParams
 
 func (as *AuthService) CreateUser(ctx context.Context, params CreateUserParams) (models.User, error) {
+	if !IsValidUserName(params.UserName) {
+		return models.User{}, ErrUserNameInvalidChars
+	}
 	return as.users.CreateUser(ctx, params)
 }
 
@@ -192,4 +202,8 @@ func newSessionExpirationTime() time.Time {
 
 func IsSessionExpired(session models.Session) bool {
 	return time.Now().Unix() > session.ExpiresAt
+}
+
+func IsValidUserName(userName string) bool {
+	return len(userName) >= 2 && userNameRegex.MatchString(userName)
 }
