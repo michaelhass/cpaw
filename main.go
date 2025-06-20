@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/michaelhass/cpaw/db"
@@ -16,6 +19,7 @@ import (
 	"github.com/michaelhass/cpaw/mux"
 	"github.com/michaelhass/cpaw/service"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/term"
 )
 
 func main() {
@@ -50,19 +54,13 @@ func main() {
 		cancelAuthCleanUp()
 	}()
 
-	initialCredentials, err := authService.SetUp(context.Background())
+	initialUser, err := authService.SetUp(context.Background(), createInitialUser)
 	if err != nil {
-		log.Fatal("Error setting up auth services", err)
+		log.Fatal("Error setting up auth services: ", err)
 		return
 	}
-	if len(initialCredentials.Id) > 0 {
-		const logMsg string = "--- Created initial user. ---\nid: %s, name: %s, pw: %s\n"
-		log.Printf(
-			logMsg,
-			initialCredentials.Id,
-			initialCredentials.UserName,
-			initialCredentials.Password,
-		)
+	if len(initialUser.Id) > 0 {
+		log.Printf("Created Initial User.\nId: %s; Name: %s", initialUser.Id, initialUser.UserName)
 	}
 	log.Println("Services are ready.")
 
@@ -115,4 +113,26 @@ func listenAndServe(addr string, mux *mux.Mux) {
 	if err := errGroup.Wait(); err != nil {
 		log.Println("Exit:", err)
 	}
+}
+
+func createInitialUser() service.CreateUserParams {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("Please create initial user")
+	var name, pw string
+	fmt.Print("User name: ")
+	name, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println(err)
+		return service.CreateUserParams{}
+	}
+	fmt.Print("Password: ")
+	bytepw, err := term.ReadPassword(syscall.Stdin)
+	if err != nil {
+		fmt.Println(err)
+		return service.CreateUserParams{}
+	}
+	fmt.Println("")
+	name = strings.TrimSpace(name)
+	pw = strings.TrimSpace(string(bytepw))
+	return service.CreateUserParams{UserName: name, Password: pw}
 }

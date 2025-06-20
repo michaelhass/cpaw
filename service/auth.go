@@ -43,41 +43,27 @@ func (e *InvalidCredentialsError) Error() string {
 	return "Invalid credentials"
 }
 
-type AuthSetupCredentials struct {
-	Id       string
-	UserName string
-	Password string
-}
-
-func (as *AuthService) SetUp(ctx context.Context) (AuthSetupCredentials, error) {
-	var credentials AuthSetupCredentials
-
+func (as *AuthService) SetUp(
+	ctx context.Context,
+	createInitialUser func() CreateUserParams,
+) (models.User, error) {
 	count, err := as.users.GetUserCount(ctx)
 	if err != nil {
-		return credentials, err
+		return models.User{}, err
 	}
 	if count > 0 {
-		return credentials, nil
+		return models.User{}, nil
 	}
-
-	tmpPassword := "root"
-	createInitialUserParams := repository.CreateUserParams{
-		UserName: "root",
-		Password: tmpPassword,
-		Role:     models.AdminRole,
+	params := createInitialUser()
+	if len(params.UserName) == 0 {
+		return models.User{}, errors.New("Empty user name")
 	}
-
-	user, err := as.users.CreateUser(ctx, createInitialUserParams)
-
-	if err != nil {
-		return credentials, err
+	if len(params.Password) < DefaultMinPasswordLength {
+		return models.User{}, ErrMinPasswordLength
 	}
-
-	credentials.Id = user.Id
-	credentials.UserName = user.UserName
-	credentials.Password = tmpPassword
-
-	return credentials, err
+	params.Role = models.AdminRole
+	initialUser, err := as.users.CreateUser(ctx, params)
+	return initialUser, err
 }
 
 type AuthSignInResult struct {
